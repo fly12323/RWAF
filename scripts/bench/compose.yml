@@ -1,0 +1,69 @@
+# Disposable full-system benchmark. Never mounts the application's rule directory.
+include:
+  - ../integration-compose.yml
+services:
+  kafka-init:
+    image: apache/kafka:3.9.1
+    depends_on:
+      kafka:
+        condition: service_healthy
+    entrypoint: [/opt/kafka/bin/kafka-topics.sh]
+    command: [--bootstrap-server, "kafka:19092", --create, --if-not-exists, --topic, waf-events, --partitions, "3", --replication-factor, "1"]
+  api:
+    image: rwaf:bench
+    build: ../..
+    environment: &app-env
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: waf_test
+      DB_PASSWORD: waf-test-only
+      DB_NAME: waf_test
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ""
+      KAFKA_BROKERS: kafka:19092
+      JWT_SECRET: Bench-Only-JWT-Key-2026-Do-Not-Use-In-Production
+      ADMIN_PASSWORD: Bench-Setup!2026-Safe
+    volumes:
+      - readiness_spool:/app/data/event-spool
+      - readiness_tls:/app/data/tls
+    depends_on: &deps
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+      kafka-init: {condition: service_completed_successfully}
+    networks:
+      default:
+        aliases: [waf, waf-server]
+  consumer:
+    image: rwaf:bench
+    build: ../..
+    command: [./log-consumer]
+    environment: *app-env
+    depends_on: *deps
+  backend:
+    image: rwaf-bench-driver:local
+    build: .
+    command: [backend]
+    networks:
+      default:
+        aliases: [bench]
+  web:
+    image: nginx:alpine
+    volumes:
+      - ../../web1/dist:/usr/share/nginx/html:ro
+      - ../../web1/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on: [api]
+  driver:
+    image: rwaf-bench-driver:local
+    build: .
+    environment:
+      BENCH_SKIP_LOAD: ${BENCH_SKIP_LOAD:-0}
+      BENCH_REPORT: ${BENCH_REPORT:-report.json}
+      BENCH_SOAK_SECONDS: ${BENCH_SOAK_SECONDS:-600}
+      BENCH_CONCURRENCY: ${BENCH_CONCURRENCY:-32}
+    volumes:
+      - ../../docs/benchmarks/latest:/out
+    depends_on: [api, consumer, backend, web]
+volumes:
+  readiness_spool:
+  readiness_tls:

@@ -1,0 +1,71 @@
+{
+  "Started": "2026-10-07T04:18:00Z",
+  "Checks": [
+    {
+      "Name": "outage accepts logs durably without dropping",
+      "Pass": true,
+      "Detail": "map[accepted:1.272821e+06 capacity:0 dropped:0 durable:1 errors:17 published:1.272532e+06 publisher_workers:3 queued:289 recovered:0 spool_bytes:2.303879e+06 spool_capacity_bytes:1.073741824e+09]"
+    },
+    {
+      "Name": "load site cleanup",
+      "Pass": true,
+      "Detail": "\u003cnil\u003e"
+    }
+  ],
+  "Results": [
+    {
+      "Name": "fault-forwarding",
+      "Concurrency": 32,
+      "Requests": 7289,
+      "Seconds": 6.030142666,
+      "RPS": 1208.7607878828253,
+      "P50Ms": 25.523,
+      "P95Ms": 39.962,
+      "P99Ms": 47.858,
+      "Errors": 0,
+      "Unexpected": 0,
+      "Statuses": {
+        "200": 7289
+      },
+      "Before": {
+        "accepted": 1258243,
+        "capacity": 0,
+        "dropped": 0,
+        "durable": 1,
+        "errors": 17,
+        "published": 1258243,
+        "publisher_workers": 3,
+        "queued": 0,
+        "recovered": 0,
+        "spool_bytes": 0,
+        "spool_capacity_bytes": 1073741824
+      },
+      "After": {
+        "accepted": 1272821,
+        "capacity": 0,
+        "dropped": 0,
+        "durable": 1,
+        "errors": 17,
+        "published": 1272532,
+        "publisher_workers": 3,
+        "queued": 289,
+        "recovered": 0,
+        "spool_bytes": 2303879,
+        "spool_capacity_bytes": 1073741824
+      }
+    }
+  ],
+  "Final": {
+    "accepted": 1272821,
+    "capacity": 0,
+    "dropped": 0,
+    "durable": 1,
+    "errors": 17,
+    "published": 1272532,
+    "publisher_workers": 3,
+    "queued": 289,
+    "recovered": 0,
+    "spool_bytes": 2303879,
+    "spool_capacity_bytes": 1073741824
+  }
+}

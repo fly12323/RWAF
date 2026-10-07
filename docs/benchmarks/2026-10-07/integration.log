@@ -1,0 +1,45 @@
+=== RUN   TestConcurrentIndexInitialization
+--- PASS: TestConcurrentIndexInitialization (2.03s)
+=== RUN   TestHTTPSDomainsStatisticsAndRetention
+✓ 数据库迁移成功
+数据库连接成功
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+2026/10/07 12:21:26 http: TLS handshake error from 127.0.0.1:34340: unknown TLS domain
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+--- PASS: TestHTTPSDomainsStatisticsAndRetention (0.73s)
+=== RUN   TestPostgresKafkaRedisAndProxy
+✓ 数据库迁移成功
+数据库连接成功
+2026/10/07 12:21:35 persisted batch: events=3
+
+2026/10/07 12:21:35 [31;1mC:/Users/pu178/.codex/worktrees/d1f6/waf-coraza/pkg/events/consumer.go:152 [35;1mrecord not found
+[0m[33m[2.222ms] [34;1m[rows:0][0m SELECT * FROM "alerts" WHERE key = 'weak:42:test-83b1fa02-015f-45b6-ac45-e9505eb41c56' AND status = 'open' ORDER BY "alerts"."id" LIMIT 1 FOR UPDATE
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /api/v1/monitor/status    --> waf-coraza/internal/integration.testLegacyPasswordRestriction.func1 (2 handlers)
+[GIN-debug] GET    /api/v1/auth/info         --> waf-coraza/internal/integration.testLegacyPasswordRestriction.func2 (2 handlers)
+[热加载] 规则文件监控已启动
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+2026/10/07 12:21:36 persisted batch: events=2
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+--- PASS: TestPostgresKafkaRedisAndProxy (9.65s)
+PASS
+ok  	waf-coraza/internal/integration	12.613s

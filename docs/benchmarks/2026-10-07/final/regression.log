@@ -1,0 +1,116 @@
+CHECK unauthenticated access rejected pass=true status=200 code=401 message=未登录
+CHECK invalid password rejected pass=true status=200 code=401 message=用户名或密码错误
+CHECK admin login pass=true 
+CHECK GET /auth/info pass=true <nil>
+CHECK GET /sites pass=true <nil>
+CHECK GET /users pass=true <nil>
+CHECK GET /rules pass=true <nil>
+CHECK GET /rules/categories pass=true <nil>
+CHECK GET /rules/statistics pass=true <nil>
+CHECK GET /ip-blacklist pass=true <nil>
+CHECK GET /ip-whitelist pass=true <nil>
+CHECK GET /cc-protection pass=true <nil>
+CHECK GET /waf/status pass=true <nil>
+CHECK GET /operation-logs pass=true <nil>
+CHECK GET /operation-logs/statistics pass=true <nil>
+CHECK GET /operation-logs/actions pass=true <nil>
+CHECK GET /crawler/stats pass=true <nil>
+CHECK GET /crawler/logs pass=true <nil>
+CHECK GET /crawler/trend pass=true <nil>
+CHECK GET /crawler/top-ips pass=true <nil>
+CHECK site create pass=true 1
+CHECK site does not expose waf_mode pass=true 
+CHECK site does not expose score_threshold pass=true 
+CHECK site does not expose waf_enabled pass=true 
+CHECK site does not expose enabled_rule_categories pass=true 
+CHECK site does not expose disabled_rule_ids pass=true 
+CHECK removed site API /sites/1/security pass=true 404
+CHECK removed site API /sites/1/security pass=true 404
+CHECK removed site API /sites/1/waf-status pass=true 404
+CHECK global off keeps first site forwarding pass=true status=200 expected=200 error=<nil> bytes=1024
+CHECK global off keeps second site forwarding pass=true status=200 expected=200 error=<nil> bytes=1024
+CHECK global on blocks first site pass=true status=403 expected=403 error=<nil> bytes=28615
+CHECK global on blocks second site pass=true status=403 expected=403 error=<nil> bytes=28615
+CHECK global monitor first site pass=true status=200 expected=200 error=<nil> bytes=1024
+CHECK global monitor second site pass=true status=200 expected=200 error=<nil> bytes=1024
+CHECK normal GET pass=true status=200 expected=200 error=<nil> bytes=1024
+CHECK JSON POST pass=true status=200 expected=200 error=<nil> bytes=19
+CHECK SQLi pass=true status=403 expected=403 error=<nil> bytes=28615
+CHECK XSS pass=true status=403 expected=403 error=<nil> bytes=28601
+CHECK LFI pass=true status=403 expected=403 error=<nil> bytes=28601
+CHECK command injection pass=true status=403 expected=403 error=<nil> bytes=28601
+CHECK request body limit pass=true status=413 expected=413 error=<nil> bytes=56
+CHECK monitor forwards attack pass=true status=200 expected=200 error=<nil> bytes=1024
+CHECK port conflict rejected pass=true 创建站点失败: 同一端口只能有一个未指定域名的默认站点
+CHECK CC rejects over quota pass=true status=429 expected=429 error=<nil> bytes=28634
+CHECK backend direct pass=true 200
+CHECK IP blacklist blocks pass=true status=403 expected=403 error=<nil> bytes=28602
+CHECK IP whitelist takes precedence pass=true status=200 expected=200 error=<nil> bytes=1024
+CHECK scanner UA blocked pass=true 403
+CHECK URI quota first request pass=true status=200 expected=200 error=<nil> bytes=1024
+CHECK URI quota second request pass=true status=429 expected=429 error=<nil> bytes=28634
+CHECK CC delay forwards pass=true status=200 expected=200 error=<nil> bytes=1024
+CHECK CC delay duration pass=true 118.009467ms
+CHECK custom rule reload pass=true status=403 expected=403 error=<nil> bytes=28598
+CHECK global disabled rule pass=true status=200 expected=200 error=<nil> bytes=1024
+CHECK global category selection pass=true status=200 expected=200 error=<nil> bytes=1024
+CHECK auditor can read logs pass=true <nil>
+CHECK auditor cannot create site pass=true status=200 code=403 message=权限不足
+CHECK auditor cannot list users pass=true status=200 code=403 message=权限不足
+CHECK auditor can read weak events pass=true <nil>
+CHECK auditor can read monitoring pass=true <nil>
+CHECK auditor cannot change detection pass=true status=200 code=403 message=权限不足
+CHECK auditor cannot change monitoring pass=true status=200 code=403 message=权限不足
+CHECK auto-ban first attack pass=true status=403 expected=403 error=<nil> bytes=28615
+CHECK auto-ban before threshold pass=true status=200 expected=200 error=<nil> bytes=1024
+CHECK auto-ban second attack pass=true status=403 expected=403 error=<nil> bytes=28615
+CHECK auto-ban blocks normal traffic pass=true status=403 expected=403 error=<nil> bytes=28668
+CHECK unavailable backend returns 502 pass=true status=502 expected=502 error=<nil> bytes=49
+CHECK updated site port forwards pass=true status=200 expected=200 error=<nil> bytes=1024
+CHECK old site port released pass=true 0
+CHECK management rejects weak password on create pass=true status=200 code=400 message=管理账号密码至少 12 个字符，且不超过 72 字节
+CHECK management rejects weak password on change pass=true status=200 code=400 message=不能使用常见口令加数字或符号的简单组合
+CHECK management rejects weak password on reset pass=true status=200 code=400 message=不能使用纯数字密码
+CHECK weak representation 0 keeps forwarding pass=true status=200 expected=200 error=<nil> bytes=1024
+CHECK weak representation 1 keeps forwarding pass=true status=200 expected=200 error=<nil> bytes=1024
+CHECK weak representation 2 keeps forwarding pass=true status=200 expected=200 error=<nil> bytes=1024
+CHECK weak representation 3 keeps forwarding pass=true status=200 expected=200 error=<nil> bytes=1024
+CHECK weak representation 4 keeps forwarding pass=true status=200 expected=200 error=<nil> bytes=1024
+CHECK weak representation 5 keeps forwarding pass=true status=200 expected=200 error=<nil> bytes=1024
+CHECK nested password keeps forwarding pass=true status=200 expected=200 error=<nil> bytes=1024
+CHECK authentication request forwards unchanged pass=true 200
+CHECK form weak password keeps forwarding pass=true <nil>
+CHECK strong password forwards pass=true status=200 expected=200 error=<nil> bytes=1024
+CHECK weak text outside password forwards pass=true status=200 expected=200 error=<nil> bytes=1024
+CHECK weak substring forwards pass=true status=200 expected=200 error=<nil> bytes=1024
+CHECK weak events persisted without false positives pass=true 9
+CHECK weak events do not contain passwords pass=true 
+CHECK weak events do not infer login success from 200 pass=true 
+CHECK authentication logs preserve configured raw capture pass=true 
+CHECK disabled weak detection forwards pass=true status=200 expected=200 error=<nil> bytes=1024
+CHECK disabled weak detection adds no events pass=true 
+CHECK weak submissions create aggregated alerts pass=true 3
+CHECK weak alert acknowledgement and resolution pass=true 
+CHECK monitor probes PostgreSQL Redis Kafka pass=true map[kafka:ok postgres:ok redis:ok]
+CHECK monitor measures Kafka consumer lag pass=true 0
+CHECK monitor sees consumer heartbeat pass=true map[batches:4 commit_ms:26 fetch_errors:0 heartbeat_at:1.791345864e+09 last_persist_at:1.79134586e+09 persist_ms:107 persisted:75 retrying_workers:0 stale:false state:running workers:3]
+CHECK runtime threshold creates alert pass=true [map[acknowledged_at:<nil> acknowledged_by: created_at:2026-10-07T12:04:24.703836+08:00 id:5 key:heap last_seen:2026-10-07T12:04:24.703836+08:00 message:WAF 进程 Go 堆内存超过阈值 occurrences:1 resolved_at:<nil> severity:warning source:runtime status:open]]
+CHECK runtime alert recovers automatically pass=true 
+CHECK web1 / pass=true 200
+CHECK web1 /sites pass=true 200
+CHECK web1 /weak-password pass=true 200
+CHECK web1 /monitor pass=true 200
+CHECK web1 /change-password pass=true 200
+CHECK web1 JS asset pass=true 200
+CHECK Nginx API proxy pass=true 200
+CHECK GET /logs?page_size=1 pass=true elapsed=3.333229ms error=<nil>
+CHECK request log detail pass=true <nil>
+CHECK GET /logs/statistics pass=true elapsed=3.187504ms error=<nil>
+CHECK GET /logs/daily pass=true elapsed=2.198193ms error=<nil>
+CHECK GET /logs/trend pass=true elapsed=2.105234ms error=<nil>
+CHECK GET /logs/attack-types pass=true elapsed=1.715931ms error=<nil>
+CHECK GET /logs/attack-ips pass=true elapsed=2.050215ms error=<nil>
+CHECK GET /crawler/recent pass=true elapsed=2.70016ms error=<nil>
+CHECK disabled site releases port pass=true status=0 error=Get "http://waf:9000/": dial tcp 192.168.80.7:9000: connect: connection refused
+CHECK site delete pass=true 
+CHECK logout revokes session pass=true status=200 code=401 message=登录已过期或已在其他设备登录

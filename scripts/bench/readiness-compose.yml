@@ -1,0 +1,9 @@
+services:
+  api:
+    image: rwaf:readiness
+  consumer:
+    image: rwaf:readiness
+  backend:
+    image: rwaf-bench-driver:readiness
+  driver:
+    image: rwaf-bench-driver:readiness

@@ -1,0 +1,86 @@
+{
+  "Started": "2026-10-07T04:15:03Z",
+  "Checks": [
+    {
+      "Name": "durable publisher enabled",
+      "Pass": true,
+      "Detail": "map[accepted:1.174057e+06 capacity:0 dropped:0 durable:1 errors:17 published:1.174057e+06 publisher_workers:3 queued:0 recovered:0 spool_bytes:0 spool_capacity_bytes:1.073741824e+09]"
+    },
+    {
+      "Name": "log queue and Kafka lag drain",
+      "Pass": true,
+      "Detail": "map[accepted:1.174057e+06 capacity:0 dropped:0 durable:1 errors:17 published:1.174057e+06 publisher_workers:3 queued:0 recovered:0 spool_bytes:0 spool_capacity_bytes:1.073741824e+09]"
+    },
+    {
+      "Name": "no log drops",
+      "Pass": true,
+      "Detail": "map[accepted:1.174057e+06 capacity:0 dropped:0 durable:1 errors:17 published:1.174057e+06 publisher_workers:3 queued:0 recovered:0 spool_bytes:0 spool_capacity_bytes:1.073741824e+09]"
+    },
+    {
+      "Name": "all accepted events delivered",
+      "Pass": true,
+      "Detail": "map[accepted:1.174057e+06 capacity:0 dropped:0 durable:1 errors:17 published:1.174057e+06 publisher_workers:3 queued:0 recovered:0 spool_bytes:0 spool_capacity_bytes:1.073741824e+09]"
+    },
+    {
+      "Name": "load site cleanup",
+      "Pass": true,
+      "Detail": "\u003cnil\u003e"
+    }
+  ],
+  "Results": [
+    {
+      "Name": "fault-forwarding",
+      "Concurrency": 32,
+      "Requests": 61326,
+      "Seconds": 60.053797208,
+      "RPS": 1021.1843855200971,
+      "P50Ms": 29.359,
+      "P95Ms": 49.279,
+      "P99Ms": 63.944,
+      "Errors": 0,
+      "Unexpected": 0,
+      "Statuses": {
+        "200": 61326
+      },
+      "Before": {
+        "accepted": 1051405,
+        "capacity": 0,
+        "dropped": 0,
+        "durable": 1,
+        "errors": 0,
+        "published": 1051405,
+        "publisher_workers": 3,
+        "queued": 0,
+        "recovered": 0,
+        "spool_bytes": 0,
+        "spool_capacity_bytes": 1073741824
+      },
+      "After": {
+        "accepted": 1174057,
+        "capacity": 0,
+        "dropped": 0,
+        "durable": 1,
+        "errors": 17,
+        "published": 1174057,
+        "publisher_workers": 3,
+        "queued": 0,
+        "recovered": 0,
+        "spool_bytes": 0,
+        "spool_capacity_bytes": 1073741824
+      }
+    }
+  ],
+  "Final": {
+    "accepted": 1174057,
+    "capacity": 0,
+    "dropped": 0,
+    "durable": 1,
+    "errors": 17,
+    "published": 1174057,
+    "publisher_workers": 3,
+    "queued": 0,
+    "recovered": 0,
+    "spool_bytes": 0,
+    "spool_capacity_bytes": 1073741824
+  }
+}

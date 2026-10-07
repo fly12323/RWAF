@@ -1,0 +1,3 @@
+[submodule "configs/rules/crs"]
+	path = configs/rules/crs
+	url = https://github.com/coreruleset/coreruleset.git

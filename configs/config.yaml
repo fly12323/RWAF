@@ -1,0 +1,98 @@
+# WAF 系统配置文件
+
+# 服务器配置
+server:
+  port: 8080              # API 服务端口
+  mode: release             # 运行模式: debug, release, test
+  read_timeout: 30        # 读取超时（秒）
+  write_timeout: 30       # 写入超时（秒）
+
+# 数据库配置
+database:
+  host: 127.0.0.1
+  port: 5432
+  username: waf
+  password: ""  # DB_PASSWORD
+  database: waf_coraza
+  sslmode: disable
+  max_idle_conns: 10      # 最大空闲连接数
+  max_open_conns: 100     # 最大打开连接数
+  conn_max_lifetime: 300 # 连接最大生命周期（秒）
+
+# WAF 引擎配置
+waf:
+  # 引擎模式: On（开启）, DetectionOnly（仅检测）, Off（关闭）
+  engine_mode: "On"
+  
+  # 规则目录配置
+  rules_dir: "./configs/rules"
+  crs_dir: "./configs/rules/crs"
+  custom_rules_dir: "./configs/rules/custom"
+  
+  # 请求体限制
+  request_body_limit: 10485760    # 10MB
+  request_body_no_files_limit: 1048576  # 1MB
+  
+  # 响应体限制
+  response_body_limit: 1048576    # 1MB
+  
+  # 默认评分阈值
+  default_score_threshold: 15
+  
+  # 默认防护模式: block（拦截）, monitor（监控）
+  default_mode: "block"
+
+# 日志配置
+log:
+  retention_days: 30           # 0 禁用自动清理；事件去重收据保留
+  cleanup_interval_minutes: 60
+  cleanup_batch_size: 1000
+  statistics_cache_seconds: 5
+  level: info             # 日志级别: debug, info, warn, error
+  format: json            # 日志格式: json, console
+  output: stdout          # 输出位置: stdout, file
+  file:
+    enabled: true
+    path: ./logs/waf.log
+    max_size: 100         # 单个日志文件最大大小（MB）
+    max_backups: 10       # 保留的旧日志文件最大数量
+    max_age: 30           # 保留旧日志文件的最大天数
+    compress: true        # 是否压缩旧日志文件
+
+# 反向代理配置
+proxy:
+  tls_key_file: "./data/tls/master.key" # 证书私钥加密主密钥；需连同数据库备份
+  connect_timeout: 30     # 连接超时（秒）
+  read_timeout: 60
+  write_timeout: 60
+  idle_timeout: 120
+  max_idle_conns: 1024
+  max_idle_conns_per_host: 256
+
+
+# JWT 配置
+jwt:
+  secret: ""  # JWT_SECRET，至少 32 字符
+  expire_time: 24  # Token 过期时间（小时）
+  issuer: "waf-coraza"
+
+  # Redis 配置
+redis:
+  host: 127.0.0.1
+  port: 6379
+  password: ""  # REDIS_PASSWORD
+  db: 0
+# Kafka log pipeline
+kafka:
+  publisher_workers: 3
+  consumer_workers: 3          # 独立消费者组成员，按现有 3 个分区分担
+  spool_dir: "./data/event-spool"
+  spool_max_bytes: 1073741824  # 本地持久化缓冲上限 1 GiB
+  spool_sync_ms: 5            # 分组刷盘；Submit 等待本地持久化，不等待 Kafka
+  brokers: ["127.0.0.1:9092"]
+  topic: waf-events
+  group_id: waf-log-writer
+  queue_size: 4096
+  batch_size: 500
+  flush_interval_ms: 200
+  max_event_bytes: 262144

@@ -1,0 +1,173 @@
+{
+  "Started": "2026-10-07T04:04:34Z",
+  "Checks": [
+    {
+      "Name": "dashboard queries during sustained load",
+      "Pass": true,
+      "Detail": "calls=1904 failures=0 max=5.38541958s"
+    },
+    {
+      "Name": "durable publisher enabled",
+      "Pass": true,
+      "Detail": "map[accepted:1.051405e+06 capacity:0 dropped:0 durable:1 errors:0 published:1.051405e+06 publisher_workers:3 queued:0 recovered:0 spool_bytes:0 spool_capacity_bytes:1.073741824e+09]"
+    },
+    {
+      "Name": "log queue and Kafka lag drain",
+      "Pass": true,
+      "Detail": "map[accepted:1.051405e+06 capacity:0 dropped:0 durable:1 errors:0 published:1.051405e+06 publisher_workers:3 queued:0 recovered:0 spool_bytes:0 spool_capacity_bytes:1.073741824e+09]"
+    },
+    {
+      "Name": "no log drops",
+      "Pass": true,
+      "Detail": "map[accepted:1.051405e+06 capacity:0 dropped:0 durable:1 errors:0 published:1.051405e+06 publisher_workers:3 queued:0 recovered:0 spool_bytes:0 spool_capacity_bytes:1.073741824e+09]"
+    },
+    {
+      "Name": "all accepted events delivered",
+      "Pass": true,
+      "Detail": "map[accepted:1.051405e+06 capacity:0 dropped:0 durable:1 errors:0 published:1.051405e+06 publisher_workers:3 queued:0 recovered:0 spool_bytes:0 spool_capacity_bytes:1.073741824e+09]"
+    },
+    {
+      "Name": "load site cleanup",
+      "Pass": true,
+      "Detail": "\u003cnil\u003e"
+    }
+  ],
+  "Results": [
+    {
+      "Name": "sustained-GET",
+      "Concurrency": 32,
+      "Requests": 207604,
+      "Seconds": 200.034236346,
+      "RPS": 1037.842340352711,
+      "P50Ms": 28.261,
+      "P95Ms": 49.912,
+      "P99Ms": 69.318,
+      "Errors": 0,
+      "Unexpected": 0,
+      "Statuses": {
+        "200": 207604
+      },
+      "Before": {
+        "accepted": 75,
+        "capacity": 0,
+        "dropped": 0,
+        "durable": 1,
+        "errors": 0,
+        "published": 75,
+        "publisher_workers": 3,
+        "queued": 0,
+        "recovered": 0,
+        "spool_bytes": 0,
+        "spool_capacity_bytes": 1073741824
+      },
+      "After": {
+        "accepted": 415283,
+        "capacity": 0,
+        "dropped": 0,
+        "durable": 1,
+        "errors": 0,
+        "published": 415283,
+        "publisher_workers": 3,
+        "queued": 0,
+        "recovered": 0,
+        "spool_bytes": 0,
+        "spool_capacity_bytes": 1073741824
+      }
+    },
+    {
+      "Name": "sustained-JSON",
+      "Concurrency": 32,
+      "Requests": 165264,
+      "Seconds": 200.034623127,
+      "RPS": 826.1769758482036,
+      "P50Ms": 34.816,
+      "P95Ms": 64.081,
+      "P99Ms": 117.452,
+      "Errors": 0,
+      "Unexpected": 0,
+      "Statuses": {
+        "200": 165264
+      },
+      "Before": {
+        "accepted": 415283,
+        "capacity": 0,
+        "dropped": 0,
+        "durable": 1,
+        "errors": 0,
+        "published": 415283,
+        "publisher_workers": 3,
+        "queued": 0,
+        "recovered": 0,
+        "spool_bytes": 0,
+        "spool_capacity_bytes": 1073741824
+      },
+      "After": {
+        "accepted": 745811,
+        "capacity": 0,
+        "dropped": 0,
+        "durable": 1,
+        "errors": 0,
+        "published": 745811,
+        "publisher_workers": 3,
+        "queued": 0,
+        "recovered": 0,
+        "spool_bytes": 0,
+        "spool_capacity_bytes": 1073741824
+      }
+    },
+    {
+      "Name": "sustained-login",
+      "Concurrency": 32,
+      "Requests": 152797,
+      "Seconds": 200.055770797,
+      "RPS": 763.7720191288344,
+      "P50Ms": 37.207,
+      "P95Ms": 69.447,
+      "P99Ms": 133.772,
+      "Errors": 0,
+      "Unexpected": 0,
+      "Statuses": {
+        "200": 152797
+      },
+      "Before": {
+        "accepted": 745811,
+        "capacity": 0,
+        "dropped": 0,
+        "durable": 1,
+        "errors": 0,
+        "published": 745811,
+        "publisher_workers": 3,
+        "queued": 0,
+        "recovered": 0,
+        "spool_bytes": 0,
+        "spool_capacity_bytes": 1073741824
+      },
+      "After": {
+        "accepted": 1051405,
+        "capacity": 0,
+        "dropped": 0,
+        "durable": 1,
+        "errors": 0,
+        "published": 1051405,
+        "publisher_workers": 3,
+        "queued": 0,
+        "recovered": 0,
+        "spool_bytes": 0,
+        "spool_capacity_bytes": 1073741824
+      }
+    }
+  ],
+  "Final": {
+    "accepted": 1051405,
+    "capacity": 0,
+    "dropped": 0,
+    "durable": 1,
+    "errors": 0,
+    "published": 1051405,
+    "publisher_workers": 3,
+    "queued": 0,
+    "recovered": 0,
+    "spool_bytes": 0,
+    "spool_capacity_bytes": 1073741824
+  }
+}

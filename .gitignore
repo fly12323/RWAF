@@ -1,0 +1,69 @@
+# Go编译输出
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# 测试二进制文件
+*.test
+
+# 输出目录
+output/
+bin/
+
+# IDE文件
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 日志文件
+logs/
+data/
+*.log
+
+# 数据库文件
+*.db
+*.sqlite
+
+# 临时文件
+*.tmp
+*.temp
+
+# Docker相关
+docker-compose.override.yml
+.env
+.env.local
+.env.demo
+.env.production
+
+# OS文件
+.DS_Store
+Thumbs.db
+
+# 备份文件
+*.bak
+*.backup
+
+# 测试覆盖数据
+coverage.out
+
+#configs
+/configs
+# Frontend dependencies and build output
+**/node_modules/
+**/dist/
+*.tsbuildinfo
+
+# Python cache
+**/__pycache__/
+*.py[cod]
+
+# Local key files
+/rfly
+/rfly.pub
+/scripts/bench/runner
+/docs/benchmarks/latest/
+/docs/backups/
+/.playwright-cli/

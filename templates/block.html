@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>访问已被拦截 - 安全防护系统</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0e14;
+            --bg-secondary: #12171f;
+            --bg-card: #161c26;
+            --accent-red: #ff3b5c;
+            --accent-orange: #ff6b35;
+            --accent-cyan: #00d4aa;
+            --text-primary: #e8eaed;
+            --text-secondary: #8b95a5;
+            --text-muted: #5a6270;
+            --border-color: #2a3444;
+            --glow-red: rgba(255, 59, 92, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 动态网格背景 */
+        .grid-bg {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(42, 52, 68, 0.3) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(42, 52, 68, 0.3) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        /* 扫描线效果 */
+        .scan-line {
+            position: fixed;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                var(--accent-cyan) 20%, 
+                var(--accent-cyan) 80%, 
+                transparent 100%);
+            opacity: 0.6;
+            animation: scanDown 4s ease-in-out infinite;
+            box-shadow: 0 0 20px var(--accent-cyan), 0 0 40px var(--accent-cyan);
+        }
+
+        @keyframes scanDown {
+            0%, 100% { top: -2px; opacity: 0; }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% { top: 100vh; opacity: 0; }
+        }
+
+        /* 光晕背景 */
+        .glow-orb {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        .glow-orb.red {
+            background: var(--accent-red);
+            top: -200px;
+            right: -200px;
+            animation: orbFloat 8s ease-in-out infinite;
+        }
+
+        .glow-orb.cyan {
+            background: var(--accent-cyan);
+            bottom: -200px;
+            left: -200px;
+            animation: orbFloat 8s ease-in-out infinite reverse;
+        }
+
+        @keyframes orbFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(30px, 30px) scale(1.1); }
+        }
+
+        /* 粒子容器 */
+        .particles {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--accent-cyan);
+            border-radius: 50%;
+            opacity: 0;
+            animation: particleFloat 6s linear infinite;
+        }
+
+        @keyframes particleFloat {
+            0% {
+                opacity: 0;
+                transform: translateY(100vh) scale(0);
+            }
+            10% {
+                opacity: 0.8;
+            }
+            90% {
+                opacity: 0.8;
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-20px) scale(1);
+            }
+        }
+
+        /* 主容器 */
+        .container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 520px;
+            padding: 24px;
+        }
+
+        /* 卡片主体 */
+        .block-card {
+            background: linear-gradient(145deg, var(--bg-card), var(--bg-secondary));
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+            animation: cardEntry 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes cardEntry {
+            0% {
+                opacity: 0;
+                transform: translateY(30px) scale(0.96);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* 头部状态栏 */
+        .status-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 24px;
+            background: rgba(255, 59, 92, 0.08);
+            border-bottom: 1px solid rgba(255, 59, 92, 0.15);
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--accent-red);
+            box-shadow: 0 0 12px var(--glow-red);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+        }
+
+        .status-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: var(--accent-red);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .status-code {
+            margin-left: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            padding: 4px 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+        }
+
+        /* 主要内容区 */
+        .card-content {
+            padding: 36px 24px;
+        }
+
+        /* 图标区 */
+        .icon-section {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 32px;
+        }
+
+        .shield-icon {
+            width: 80px;
+            height: 80px;
+            position: relative;
+            animation: iconFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .shield-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .shield-icon .shield-outer {
+            fill: none;
+            stroke: var(--accent-red);
+            stroke-width: 2;
+            stroke-dasharray: 200;
+            stroke-dashoffset: 200;
+            animation: drawShield 1.5s ease-out 0.3s forwards;
+        }
+
+        .shield-icon .shield-inner {
+            fill: rgba(255, 59, 92, 0.1);
+            stroke: none;
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out 1s forwards;
+        }
+
+        .shield-icon .shield-x {
+            stroke: var(--accent-red);
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-dasharray: 30;
+            stroke-dashoffset: 30;
+            animation: drawX 0.4s ease-out 1.2s forwards;
+        }
+
+        @keyframes drawShield {
+            to { stroke-dashoffset: 0; }
+        }
+
+        @keyframes drawX {
+            to { stroke-dashoffset: 0; }
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        /* 标题 */
+        .block-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-align: center;
+            margin-bottom: 8px;
+            opacity: 0;
+            animation: slideUp 0.5s ease-out 0.4s forwards;
+        }
+
+        .block-subtitle {
+            font-size: 15px;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 32px;
+            opacity: 0;
+            animation: slideUp 0.5s ease-out 0.5s forwards;
+        }
+
+        @keyframes slideUp {
+            0% {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 信息卡片 */
+        .info-grid {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 18px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            opacity: 0;
+            animation: slideUp 0.5s ease-out forwards;
+        }
+
+        .info-item:nth-child(1) { animation-delay: 0.6s; }
+        .info-item:nth-child(2) { animation-delay: 0.7s; }
+        .info-item:nth-child(3) { animation-delay: 0.8s; }
+
+        .info-icon {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 212, 170, 0.1);
+            border-radius: 10px;
+            color: var(--accent-cyan);
+        }
+
+        .info-icon.warning {
+            background: rgba(255, 107, 53, 0.1);
+            color: var(--accent-orange);
+        }
+
+        .info-icon.danger {
+            background: rgba(255, 59, 92, 0.1);
+            color: var(--accent-red);
+        }
+
+        .info-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 15px;
+            color: var(--text-primary);
+            word-break: break-all;
+        }
+
+        /* 底部操作区 */
+        .card-footer {
+            padding: 20px 24px;
+            background: rgba(0, 0, 0, 0.2);
+            border-top: 1px solid var(--border-color);
+            opacity: 0;
+            animation: slideUp 0.5s ease-out 0.9s forwards;
+        }
+
+        .footer-hint {
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .footer-hint a {
+            color: var(--accent-cyan);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-hint a:hover {
+            color: #00ffcc;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--accent-cyan);
+            color: var(--bg-primary);
+        }
+
+        .btn-primary:hover {
+            background: #00e6b8;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 212, 170, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        /* 时间戳 */
+        .timestamp {
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 16px;
+        }
+
+        /* CC 防护专用样式 */
+        .cc-mode .status-bar {
+            background: rgba(255, 107, 53, 0.08);
+            border-bottom-color: rgba(255, 107, 53, 0.15);
+        }
+
+        .cc-mode .status-indicator {
+            background: var(--accent-orange);
+            box-shadow: 0 0 12px rgba(255, 107, 53, 0.4);
+        }
+
+        .cc-mode .status-text {
+            color: var(--accent-orange);
+        }
+
+        /* 倒计时 */
+        .countdown {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--accent-orange);
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 107, 53, 0.05);
+            border-radius: 10px;
+            margin-bottom: 12px;
+        }
+
+        .countdown-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 400;
+            margin-top: 4px;
+        }
+
+        /* IP 封禁专用 */
+        .ipban-mode .status-indicator {
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        /* 响应式 */
+        @media (max-width: 480px) {
+            .container {
+                padding: 16px;
+            }
+
+            .block-title {
+                font-size: 20px;
+            }
+
+            .info-item {
+                padding: 14px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .shield-icon {
+                width: 64px;
+                height: 64px;
+            }
+        }
+
+        /* Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景效果 -->
+    <div class="grid-bg"></div>
+    <div class="scan-line"></div>
+    <div class="glow-orb red"></div>
+    <div class="glow-orb cyan"></div>
+    <div class="particles" id="particles"></div>
+    <div id="pageData" data-query-string="{{.QueryString}}" style="display:none;"></div>
+
+    <!-- 主容器 -->
+    <div class="container">
+        <div class="block-card" id="blockCard">
+            <!-- 状态栏 -->
+            <div class="status-bar">
+                <div class="status-indicator"></div>
+                <span class="status-text" id="statusText">访问已被拦截</span>
+                <span class="status-code" id="statusCode">403</span>
+            </div>
+
+            <!-- 内容区 -->
+            <div class="card-content">
+                <!-- 图标 -->
+                <div class="icon-section">
+                    <div class="shield-icon">
+                        <svg viewBox="0 0 80 80">
+                            <path class="shield-inner" d="M40 8 L68 20 L68 38 C68 56 55 68 40 74 C25 68 12 56 12 38 L12 20 Z"/>
+                            <path class="shield-outer" d="M40 8 L68 20 L68 38 C68 56 55 68 40 74 C25 68 12 56 12 38 L12 20 Z"/>
+                            <line class="shield-x" x1="28" y1="28" x2="52" y2="52"/>
+                            <line class="shield-x" x1="52" y1="28" x2="28" y2="52"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- 标题 -->
+                <h1 class="block-title" id="blockTitle">请求被安全系统拦截</h1>
+                <p class="block-subtitle" id="blockSubtitle">您的请求触发了安全防护规则</p>
+
+                <!-- 信息列表 -->
+                <div class="info-grid" id="infoGrid">
+                    <!-- 动态填充 -->
+                </div>
+            </div>
+
+            <!-- 底部 -->
+            <div class="card-footer">
+                <div class="footer-hint">
+                    如果您认为这是误判，请 <a href="javascript:void(0)" onclick="contactAdmin()">联系管理员</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" onclick="goBack()">返回上页</button>
+                    <button class="btn btn-primary" onclick="goHome()">返回首页</button>
+                </div>
+                <div class="timestamp" id="timestamp"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 初始化粒子
+        function initParticles() {
+            const container = document.getElementById('particles');
+            const particleCount = 30;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 6 + 's';
+                particle.style.animationDuration = (4 + Math.random() * 4) + 's';
+                
+                const colors = ['#00d4aa', '#ff3b5c', '#ff6b35'];
+                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                particle.style.boxShadow = '0 0 6px ' + particle.style.background;
+                
+                container.appendChild(particle);
+            }
+        }
+
+        // 获取 URL 参数
+        function getUrlParams() {
+            // 优先从隐藏元素读取 QueryString（用于 Go 模板注入的场景）
+            const pageDataEl = document.getElementById('pageData');
+            if (pageDataEl && pageDataEl.dataset.queryString) {
+                const params = new URLSearchParams(pageDataEl.dataset.queryString);
+                return {
+                    type: params.get('type') || 'waf',
+                    code: params.get('code') || '403',
+                    ip: params.get('ip') || '未知',
+                    reason: params.get('reason') || '',
+                    expire: params.get('expire') || '',
+                    message: params.get('message') || ''
+                };
+            }
+            // 降级到从 URL 读取
+            const params = new URLSearchParams(window.location.search);
+            return {
+                type: params.get('type') || 'waf',
+                code: params.get('code') || '403',
+                ip: params.get('ip') || '未知',
+                reason: params.get('reason') || '',
+                expire: params.get('expire') || '',
+                message: params.get('message') || ''
+            };
+        }
+
+        // HTML 转义
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 格式化时间
+        function formatDateTime(dateStr) {
+            if (!dateStr) return '未知';
+            try {
+                const date = new Date(dateStr);
+                return date.toLocaleString('zh-CN', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+            } catch (e) {
+                return dateStr;
+            }
+        }
+
+        // 生成请求 ID
+        function generateRequestId() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        // 渲染页面
+        function renderPage() {
+            const params = getUrlParams();
+            const card = document.getElementById('blockCard');
+            const statusText = document.getElementById('statusText');
+            const statusCode = document.getElementById('statusCode');
+            const blockTitle = document.getElementById('blockTitle');
+            const blockSubtitle = document.getElementById('blockSubtitle');
+            const infoGrid = document.getElementById('infoGrid');
+            const timestamp = document.getElementById('timestamp');
+
+            timestamp.textContent = 'Request ID: ' + generateRequestId();
+
+            switch (params.type) {
+                case 'ipban':
+                    renderIPBan(params, card, statusText, statusCode, blockTitle, blockSubtitle, infoGrid);
+                    break;
+                case 'cc':
+                    renderCCProtection(params, card, statusText, statusCode, blockTitle, blockSubtitle, infoGrid);
+                    break;
+                case 'waf':
+                default:
+                    renderWAFBlock(params, card, statusText, statusCode, blockTitle, blockSubtitle, infoGrid);
+                    break;
+            }
+        }
+
+        // 渲染 IP 封禁页面
+        function renderIPBan(params, card, statusText, statusCode, blockTitle, blockSubtitle, infoGrid) {
+            card.classList.add('ipban-mode');
+            statusText.textContent = 'IP 已被封禁';
+            statusCode.textContent = params.code;
+            blockTitle.textContent = '您的 IP 已被列入黑名单';
+            blockSubtitle.textContent = '您的访问权限已被限制';
+
+            let html = `
+                <div class="info-item">
+                    <div class="info-icon danger">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2"/>
+                            <path d="M9 9h.01M15 9h.01"/>
+                            <path d="M8 14h8"/>
+                        </svg>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">您的 IP 地址</div>
+                        <div class="info-value">${escapeHtml(params.ip)}</div>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="info-icon warning">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">封禁原因</div>
+                        <div class="info-value">${escapeHtml(params.reason) || '违反安全策略'}</div>
+                    </div>
+                </div>`;
+
+            if (params.expire) {
+                html += `
+                <div class="info-item">
+                    <div class="info-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12,6 12,12 16,14"/>
+                        </svg>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">解封时间</div>
+                        <div class="info-value">${formatDateTime(params.expire)}</div>
+                    </div>
+                </div>`;
+            }
+
+            infoGrid.innerHTML = html;
+        }
+
+        // 渲染 CC 防护页面
+        function renderCCProtection(params, card, statusText, statusCode, blockTitle, blockSubtitle, infoGrid) {
+            card.classList.add('cc-mode');
+            statusText.textContent = '请求频率过高';
+            statusCode.textContent = params.code || '429';
+            blockTitle.textContent = '请求过于频繁';
+            blockSubtitle.textContent = '请稍后再试';
+
+            infoGrid.innerHTML = `
+                <div class="countdown" id="countdown">
+                    <span id="countdownNum">30</span>
+                    <div class="countdown-label">秒后可重试</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-icon warning">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2"/>
+                            <path d="M9 9h.01M15 9h.01"/>
+                            <path d="M8 14h8"/>
+                        </svg>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">您的 IP 地址</div>
+                        <div class="info-value">${escapeHtml(params.ip)}</div>
+                    </div>
+                </div>`;
+
+            startCountdown(30);
+        }
+
+        // 渲染 WAF 拦截页面（只显示客户端 IP）
+        function renderWAFBlock(params, card, statusText, statusCode, blockTitle, blockSubtitle, infoGrid) {
+            statusText.textContent = '请求被 WAF 拦截';
+            statusCode.textContent = params.code || '403';
+            blockTitle.textContent = '检测到可疑请求';
+            blockSubtitle.textContent = params.message || '您的请求触发了安全防护规则';
+
+            infoGrid.innerHTML = `
+                <div class="info-item">
+                    <div class="info-icon danger">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2"/>
+                            <path d="M9 9h.01M15 9h.01"/>
+                            <path d="M8 14h8"/>
+                        </svg>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">您的 IP 地址</div>
+                        <div class="info-value">${escapeHtml(params.ip)}</div>
+                    </div>
+                </div>`;
+        }
+
+        // 倒计时
+        function startCountdown(seconds) {
+            let remaining = seconds;
+            const countdownEl = document.getElementById('countdownNum');
+            
+            const timer = setInterval(function() {
+                remaining--;
+                if (countdownEl) {
+                    countdownEl.textContent = remaining;
+                }
+                
+                if (remaining <= 0) {
+                    clearInterval(timer);
+                    if (countdownEl) {
+                        countdownEl.textContent = '0';
+                        countdownEl.parentElement.querySelector('.countdown-label').textContent = '现在可以重试了';
+                    }
+                }
+            }, 1000);
+        }
+
+        // 操作函数
+        function goBack() {
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = '/';
+            }
+        }
+
+        function goHome() {
+            window.location.href = '/';
+        }
+
+        function contactAdmin() {
+            const params = getUrlParams();
+            const subject = encodeURIComponent('WAF 拦截申诉');
+            const body = encodeURIComponent('我访问网站时被安全系统拦截，请协助处理。\n\nIP: ' + params.ip + '\n时间: ' + new Date().toLocaleString('zh-CN'));
+            window.location.href = 'mailto:admin@example.com?subject=' + subject + '&body=' + body;
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initParticles();
+            renderPage();
+        });
+    </script>
+</body>
+</html>

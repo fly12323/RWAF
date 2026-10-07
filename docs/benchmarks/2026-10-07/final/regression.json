@@ -1,0 +1,599 @@
+{
+  "Started": "2026-10-07T04:04:09Z",
+  "Checks": [
+    {
+      "Name": "unauthenticated access rejected",
+      "Pass": true,
+      "Detail": "status=200 code=401 message=未登录"
+    },
+    {
+      "Name": "invalid password rejected",
+      "Pass": true,
+      "Detail": "status=200 code=401 message=用户名或密码错误"
+    },
+    {
+      "Name": "admin login",
+      "Pass": true,
+      "Detail": ""
+    },
+    {
+      "Name": "GET /auth/info",
+      "Pass": true,
+      "Detail": "\u003cnil\u003e"
+    },
+    {
+      "Name": "GET /sites",
+      "Pass": true,
+      "Detail": "\u003cnil\u003e"
+    },
+    {
+      "Name": "GET /users",
+      "Pass": true,
+      "Detail": "\u003cnil\u003e"
+    },
+    {
+      "Name": "GET /rules",
+      "Pass": true,
+      "Detail": "\u003cnil\u003e"
+    },
+    {
+      "Name": "GET /rules/categories",
+      "Pass": true,
+      "Detail": "\u003cnil\u003e"
+    },
+    {
+      "Name": "GET /rules/statistics",
+      "Pass": true,
+      "Detail": "\u003cnil\u003e"
+    },
+    {
+      "Name": "GET /ip-blacklist",
+      "Pass": true,
+      "Detail": "\u003cnil\u003e"
+    },
+    {
+      "Name": "GET /ip-whitelist",
+      "Pass": true,
+      "Detail": "\u003cnil\u003e"
+    },
+    {
+      "Name": "GET /cc-protection",
+      "Pass": true,
+      "Detail": "\u003cnil\u003e"
+    },
+    {
+      "Name": "GET /waf/status",
+      "Pass": true,
+      "Detail": "\u003cnil\u003e"
+    },
+    {
+      "Name": "GET /operation-logs",
+      "Pass": true,
+      "Detail": "\u003cnil\u003e"
+    },
+    {
+      "Name": "GET /operation-logs/statistics",
+      "Pass": true,
+      "Detail": "\u003cnil\u003e"
+    },
+    {
+      "Name": "GET /operation-logs/actions",
+      "Pass": true,
+      "Detail": "\u003cnil\u003e"
+    },
+    {
+      "Name": "GET /crawler/stats",
+      "Pass": true,
+      "Detail": "\u003cnil\u003e"
+    },
+    {
+      "Name": "GET /crawler/logs",
+      "Pass": true,
+      "Detail": "\u003cnil\u003e"
+    },
+    {
+      "Name": "GET /crawler/trend",
+      "Pass": true,
+      "Detail": "\u003cnil\u003e"
+    },
+    {
+      "Name": "GET /crawler/top-ips",
+      "Pass": true,
+      "Detail": "\u003cnil\u003e"
+    },
+    {
+      "Name": "site create",
+      "Pass": true,
+      "Detail": "1"
+    },
+    {
+      "Name": "site does not expose waf_mode",
+      "Pass": true,
+      "Detail": ""
+    },
+    {
+      "Name": "site does not expose score_threshold",
+      "Pass": true,
+      "Detail": ""
+    },
+    {
+      "Name": "site does not expose waf_enabled",
+      "Pass": true,
+      "Detail": ""
+    },
+    {
+      "Name": "site does not expose enabled_rule_categories",
+      "Pass": true,
+      "Detail": ""
+    },
+    {
+      "Name": "site does not expose disabled_rule_ids",
+      "Pass": true,
+      "Detail": ""
+    },
+    {
+      "Name": "removed site API /sites/1/security",
+      "Pass": true,
+      "Detail": "404"
+    },
+    {
+      "Name": "removed site API /sites/1/security",
+      "Pass": true,
+      "Detail": "404"
+    },
+    {
+      "Name": "removed site API /sites/1/waf-status",
+      "Pass": true,
+      "Detail": "404"
+    },
+    {
+      "Name": "global off keeps first site forwarding",
+      "Pass": true,
+      "Detail": "status=200 expected=200 error=\u003cnil\u003e bytes=1024"
+    },
+    {
+      "Name": "global off keeps second site forwarding",
+      "Pass": true,
+      "Detail": "status=200 expected=200 error=\u003cnil\u003e bytes=1024"
+    },
+    {
+      "Name": "global on blocks first site",
+      "Pass": true,
+      "Detail": "status=403 expected=403 error=\u003cnil\u003e bytes=28615"
+    },
+    {
+      "Name": "global on blocks second site",
+      "Pass": true,
+      "Detail": "status=403 expected=403 error=\u003cnil\u003e bytes=28615"
+    },
+    {
+      "Name": "global monitor first site",
+      "Pass": true,
+      "Detail": "status=200 expected=200 error=\u003cnil\u003e bytes=1024"
+    },
+    {
+      "Name": "global monitor second site",
+      "Pass": true,
+      "Detail": "status=200 expected=200 error=\u003cnil\u003e bytes=1024"
+    },
+    {
+      "Name": "normal GET",
+      "Pass": true,
+      "Detail": "status=200 expected=200 error=\u003cnil\u003e bytes=1024"
+    },
+    {
+      "Name": "JSON POST",
+      "Pass": true,
+      "Detail": "status=200 expected=200 error=\u003cnil\u003e bytes=19"
+    },
+    {
+      "Name": "SQLi",
+      "Pass": true,
+      "Detail": "status=403 expected=403 error=\u003cnil\u003e bytes=28615"
+    },
+    {
+      "Name": "XSS",
+      "Pass": true,
+      "Detail": "status=403 expected=403 error=\u003cnil\u003e bytes=28601"
+    },
+    {
+      "Name": "LFI",
+      "Pass": true,
+      "Detail": "status=403 expected=403 error=\u003cnil\u003e bytes=28601"
+    },
+    {
+      "Name": "command injection",
+      "Pass": true,
+      "Detail": "status=403 expected=403 error=\u003cnil\u003e bytes=28601"
+    },
+    {
+      "Name": "request body limit",
+      "Pass": true,
+      "Detail": "status=413 expected=413 error=\u003cnil\u003e bytes=56"
+    },
+    {
+      "Name": "monitor forwards attack",
+      "Pass": true,
+      "Detail": "status=200 expected=200 error=\u003cnil\u003e bytes=1024"
+    },
+    {
+      "Name": "port conflict rejected",
+      "Pass": true,
+      "Detail": "创建站点失败: 同一端口只能有一个未指定域名的默认站点"
+    },
+    {
+      "Name": "CC rejects over quota",
+      "Pass": true,
+      "Detail": "status=429 expected=429 error=\u003cnil\u003e bytes=28634"
+    },
+    {
+      "Name": "backend direct",
+      "Pass": true,
+      "Detail": "200"
+    },
+    {
+      "Name": "IP blacklist blocks",
+      "Pass": true,
+      "Detail": "status=403 expected=403 error=\u003cnil\u003e bytes=28602"
+    },
+    {
+      "Name": "IP whitelist takes precedence",
+      "Pass": true,
+      "Detail": "status=200 expected=200 error=\u003cnil\u003e bytes=1024"
+    },
+    {
+      "Name": "scanner UA blocked",
+      "Pass": true,
+      "Detail": "403"
+    },
+    {
+      "Name": "URI quota first request",
+      "Pass": true,
+      "Detail": "status=200 expected=200 error=\u003cnil\u003e bytes=1024"
+    },
+    {
+      "Name": "URI quota second request",
+      "Pass": true,
+      "Detail": "status=429 expected=429 error=\u003cnil\u003e bytes=28634"
+    },
+    {
+      "Name": "CC delay forwards",
+      "Pass": true,
+      "Detail": "status=200 expected=200 error=\u003cnil\u003e bytes=1024"
+    },
+    {
+      "Name": "CC delay duration",
+      "Pass": true,
+      "Detail": "118.009467ms"
+    },
+    {
+      "Name": "custom rule reload",
+      "Pass": true,
+      "Detail": "status=403 expected=403 error=\u003cnil\u003e bytes=28598"
+    },
+    {
+      "Name": "global disabled rule",
+      "Pass": true,
+      "Detail": "status=200 expected=200 error=\u003cnil\u003e bytes=1024"
+    },
+    {
+      "Name": "global category selection",
+      "Pass": true,
+      "Detail": "status=200 expected=200 error=\u003cnil\u003e bytes=1024"
+    },
+    {
+      "Name": "auditor can read logs",
+      "Pass": true,
+      "Detail": "\u003cnil\u003e"
+    },
+    {
+      "Name": "auditor cannot create site",
+      "Pass": true,
+      "Detail": "status=200 code=403 message=权限不足"
+    },
+    {
+      "Name": "auditor cannot list users",
+      "Pass": true,
+      "Detail": "status=200 code=403 message=权限不足"
+    },
+    {
+      "Name": "auditor can read weak events",
+      "Pass": true,
+      "Detail": "\u003cnil\u003e"
+    },
+    {
+      "Name": "auditor can read monitoring",
+      "Pass": true,
+      "Detail": "\u003cnil\u003e"
+    },
+    {
+      "Name": "auditor cannot change detection",
+      "Pass": true,
+      "Detail": "status=200 code=403 message=权限不足"
+    },
+    {
+      "Name": "auditor cannot change monitoring",
+      "Pass": true,
+      "Detail": "status=200 code=403 message=权限不足"
+    },
+    {
+      "Name": "auto-ban first attack",
+      "Pass": true,
+      "Detail": "status=403 expected=403 error=\u003cnil\u003e bytes=28615"
+    },
+    {
+      "Name": "auto-ban before threshold",
+      "Pass": true,
+      "Detail": "status=200 expected=200 error=\u003cnil\u003e bytes=1024"
+    },
+    {
+      "Name": "auto-ban second attack",
+      "Pass": true,
+      "Detail": "status=403 expected=403 error=\u003cnil\u003e bytes=28615"
+    },
+    {
+      "Name": "auto-ban blocks normal traffic",
+      "Pass": true,
+      "Detail": "status=403 expected=403 error=\u003cnil\u003e bytes=28668"
+    },
+    {
+      "Name": "unavailable backend returns 502",
+      "Pass": true,
+      "Detail": "status=502 expected=502 error=\u003cnil\u003e bytes=49"
+    },
+    {
+      "Name": "updated site port forwards",
+      "Pass": true,
+      "Detail": "status=200 expected=200 error=\u003cnil\u003e bytes=1024"
+    },
+    {
+      "Name": "old site port released",
+      "Pass": true,
+      "Detail": "0"
+    },
+    {
+      "Name": "management rejects weak password on create",
+      "Pass": true,
+      "Detail": "status=200 code=400 message=管理账号密码至少 12 个字符，且不超过 72 字节"
+    },
+    {
+      "Name": "management rejects weak password on change",
+      "Pass": true,
+      "Detail": "status=200 code=400 message=不能使用常见口令加数字或符号的简单组合"
+    },
+    {
+      "Name": "management rejects weak password on reset",
+      "Pass": true,
+      "Detail": "status=200 code=400 message=不能使用纯数字密码"
+    },
+    {
+      "Name": "weak representation 0 keeps forwarding",
+      "Pass": true,
+      "Detail": "status=200 expected=200 error=\u003cnil\u003e bytes=1024"
+    },
+    {
+      "Name": "weak representation 1 keeps forwarding",
+      "Pass": true,
+      "Detail": "status=200 expected=200 error=\u003cnil\u003e bytes=1024"
+    },
+    {
+      "Name": "weak representation 2 keeps forwarding",
+      "Pass": true,
+      "Detail": "status=200 expected=200 error=\u003cnil\u003e bytes=1024"
+    },
+    {
+      "Name": "weak representation 3 keeps forwarding",
+      "Pass": true,
+      "Detail": "status=200 expected=200 error=\u003cnil\u003e bytes=1024"
+    },
+    {
+      "Name": "weak representation 4 keeps forwarding",
+      "Pass": true,
+      "Detail": "status=200 expected=200 error=\u003cnil\u003e bytes=1024"
+    },
+    {
+      "Name": "weak representation 5 keeps forwarding",
+      "Pass": true,
+      "Detail": "status=200 expected=200 error=\u003cnil\u003e bytes=1024"
+    },
+    {
+      "Name": "nested password keeps forwarding",
+      "Pass": true,
+      "Detail": "status=200 expected=200 error=\u003cnil\u003e bytes=1024"
+    },
+    {
+      "Name": "authentication request forwards unchanged",
+      "Pass": true,
+      "Detail": "200"
+    },
+    {
+      "Name": "form weak password keeps forwarding",
+      "Pass": true,
+      "Detail": "\u003cnil\u003e"
+    },
+    {
+      "Name": "strong password forwards",
+      "Pass": true,
+      "Detail": "status=200 expected=200 error=\u003cnil\u003e bytes=1024"
+    },
+    {
+      "Name": "weak text outside password forwards",
+      "Pass": true,
+      "Detail": "status=200 expected=200 error=\u003cnil\u003e bytes=1024"
+    },
+    {
+      "Name": "weak substring forwards",
+      "Pass": true,
+      "Detail": "status=200 expected=200 error=\u003cnil\u003e bytes=1024"
+    },
+    {
+      "Name": "weak events persisted without false positives",
+      "Pass": true,
+      "Detail": "9"
+    },
+    {
+      "Name": "weak events do not contain passwords",
+      "Pass": true,
+      "Detail": ""
+    },
+    {
+      "Name": "weak events do not infer login success from 200",
+      "Pass": true,
+      "Detail": ""
+    },
+    {
+      "Name": "authentication logs preserve configured raw capture",
+      "Pass": true,
+      "Detail": ""
+    },
+    {
+      "Name": "disabled weak detection forwards",
+      "Pass": true,
+      "Detail": "status=200 expected=200 error=\u003cnil\u003e bytes=1024"
+    },
+    {
+      "Name": "disabled weak detection adds no events",
+      "Pass": true,
+      "Detail": ""
+    },
+    {
+      "Name": "weak submissions create aggregated alerts",
+      "Pass": true,
+      "Detail": "3"
+    },
+    {
+      "Name": "weak alert acknowledgement and resolution",
+      "Pass": true,
+      "Detail": ""
+    },
+    {
+      "Name": "monitor probes PostgreSQL Redis Kafka",
+      "Pass": true,
+      "Detail": "map[kafka:ok postgres:ok redis:ok]"
+    },
+    {
+      "Name": "monitor measures Kafka consumer lag",
+      "Pass": true,
+      "Detail": "0"
+    },
+    {
+      "Name": "monitor sees consumer heartbeat",
+      "Pass": true,
+      "Detail": "map[batches:4 commit_ms:26 fetch_errors:0 heartbeat_at:1.791345864e+09 last_persist_at:1.79134586e+09 persist_ms:107 persisted:75 retrying_workers:0 stale:false state:running workers:3]"
+    },
+    {
+      "Name": "runtime threshold creates alert",
+      "Pass": true,
+      "Detail": "[map[acknowledged_at:\u003cnil\u003e acknowledged_by: created_at:2026-10-07T12:04:24.703836+08:00 id:5 key:heap last_seen:2026-10-07T12:04:24.703836+08:00 message:WAF 进程 Go 堆内存超过阈值 occurrences:1 resolved_at:\u003cnil\u003e severity:warning source:runtime status:open]]"
+    },
+    {
+      "Name": "runtime alert recovers automatically",
+      "Pass": true,
+      "Detail": ""
+    },
+    {
+      "Name": "web1 /",
+      "Pass": true,
+      "Detail": "200"
+    },
+    {
+      "Name": "web1 /sites",
+      "Pass": true,
+      "Detail": "200"
+    },
+    {
+      "Name": "web1 /weak-password",
+      "Pass": true,
+      "Detail": "200"
+    },
+    {
+      "Name": "web1 /monitor",
+      "Pass": true,
+      "Detail": "200"
+    },
+    {
+      "Name": "web1 /change-password",
+      "Pass": true,
+      "Detail": "200"
+    },
+    {
+      "Name": "web1 JS asset",
+      "Pass": true,
+      "Detail": "200"
+    },
+    {
+      "Name": "Nginx API proxy",
+      "Pass": true,
+      "Detail": "200"
+    },
+    {
+      "Name": "GET /logs?page_size=1",
+      "Pass": true,
+      "Detail": "elapsed=3.333229ms error=\u003cnil\u003e"
+    },
+    {
+      "Name": "request log detail",
+      "Pass": true,
+      "Detail": "\u003cnil\u003e"
+    },
+    {
+      "Name": "GET /logs/statistics",
+      "Pass": true,
+      "Detail": "elapsed=3.187504ms error=\u003cnil\u003e"
+    },
+    {
+      "Name": "GET /logs/daily",
+      "Pass": true,
+      "Detail": "elapsed=2.198193ms error=\u003cnil\u003e"
+    },
+    {
+      "Name": "GET /logs/trend",
+      "Pass": true,
+      "Detail": "elapsed=2.105234ms error=\u003cnil\u003e"
+    },
+    {
+      "Name": "GET /logs/attack-types",
+      "Pass": true,
+      "Detail": "elapsed=1.715931ms error=\u003cnil\u003e"
+    },
+    {
+      "Name": "GET /logs/attack-ips",
+      "Pass": true,
+      "Detail": "elapsed=2.050215ms error=\u003cnil\u003e"
+    },
+    {
+      "Name": "GET /crawler/recent",
+      "Pass": true,
+      "Detail": "elapsed=2.70016ms error=\u003cnil\u003e"
+    },
+    {
+      "Name": "disabled site releases port",
+      "Pass": true,
+      "Detail": "status=0 error=Get \"http://waf:9000/\": dial tcp 192.168.80.7:9000: connect: connection refused"
+    },
+    {
+      "Name": "site delete",
+      "Pass": true,
+      "Detail": ""
+    },
+    {
+      "Name": "logout revokes session",
+      "Pass": true,
+      "Detail": "status=200 code=401 message=登录已过期或已在其他设备登录"
+    }
+  ],
+  "Results": null,
+  "Final": {
+    "accepted": 75,
+    "capacity": 0,
+    "dropped": 0,
+    "durable": 1,
+    "errors": 0,
+    "published": 75,
+    "publisher_workers": 3,
+    "queued": 0,
+    "recovered": 0,
+    "spool_bytes": 0,
+    "spool_capacity_bytes": 1073741824
+  }
+}

@@ -1,0 +1,7 @@
+# Keep this local demo upstream available until the user requests cleanup.
+# Start with: docker compose -f docker-compose.yml -f scripts/demo/compose.yml up -d demo-backend
+services:
+  demo-backend:
+    image: rwaf-bench-driver:local
+    command: [backend]
+    restart: unless-stopped

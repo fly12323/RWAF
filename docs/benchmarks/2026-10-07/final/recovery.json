@@ -1,0 +1,412 @@
+[
+  {
+    "name": "sustained load driver passed",
+    "pass": true,
+    "detail": 0
+  },
+  {
+    "name": "delivered event counts match database",
+    "pass": true,
+    "detail": {
+      "expected": 1051405,
+      "pipeline": {
+        "accepted": 1051405,
+        "capacity": 0,
+        "dropped": 0,
+        "durable": 1,
+        "errors": 0,
+        "published": 1051405,
+        "publisher_workers": 3,
+        "queued": 0,
+        "recovered": 0,
+        "spool_bytes": 0,
+        "spool_capacity_bytes": 1073741824
+      },
+      "database": {
+        "processed": 1051405,
+        "requests": 525708,
+        "crawlers": 525688,
+        "weak": 9,
+        "duplicate_requests": 0,
+        "duplicate_crawlers": 0,
+        "orphan_matches": 0
+      }
+    }
+  },
+  {
+    "name": "no duplicates or orphan matches",
+    "pass": true,
+    "detail": {
+      "processed": 1051405,
+      "requests": 525708,
+      "crawlers": 525688,
+      "weak": 9,
+      "duplicate_requests": 0,
+      "duplicate_crawlers": 0,
+      "orphan_matches": 0
+    }
+  },
+  {
+    "name": "all receipts have one event row",
+    "pass": true,
+    "detail": {
+      "processed": 1051405,
+      "requests": 525708,
+      "crawlers": 525688,
+      "weak": 9,
+      "duplicate_requests": 0,
+      "duplicate_crawlers": 0,
+      "orphan_matches": 0
+    }
+  },
+  {
+    "name": "Kafka outage buffers logs on disk",
+    "pass": true,
+    "detail": {
+      "accepted": 1099467,
+      "capacity": 0,
+      "dropped": 0,
+      "durable": 1,
+      "errors": 7,
+      "published": 1067086,
+      "publisher_workers": 3,
+      "queued": 32393,
+      "recovered": 0,
+      "spool_bytes": 247675945,
+      "spool_capacity_bytes": 1073741824
+    }
+  },
+  {
+    "name": "Kafka outage driver passed",
+    "pass": true,
+    "detail": 0
+  },
+  {
+    "name": "delivered event counts match database",
+    "pass": true,
+    "detail": {
+      "expected": 1174057,
+      "pipeline": {
+        "accepted": 1174057,
+        "capacity": 0,
+        "dropped": 0,
+        "durable": 1,
+        "errors": 17,
+        "published": 1174057,
+        "publisher_workers": 3,
+        "queued": 0,
+        "recovered": 0,
+        "spool_bytes": 0,
+        "spool_capacity_bytes": 1073741824
+      },
+      "database": {
+        "processed": 1174057,
+        "requests": 587034,
+        "crawlers": 587014,
+        "weak": 9,
+        "duplicate_requests": 0,
+        "duplicate_crawlers": 0,
+        "orphan_matches": 0
+      }
+    }
+  },
+  {
+    "name": "no duplicates or orphan matches",
+    "pass": true,
+    "detail": {
+      "processed": 1174057,
+      "requests": 587034,
+      "crawlers": 587014,
+      "weak": 9,
+      "duplicate_requests": 0,
+      "duplicate_crawlers": 0,
+      "orphan_matches": 0
+    }
+  },
+  {
+    "name": "all receipts have one event row",
+    "pass": true,
+    "detail": {
+      "processed": 1174057,
+      "requests": 587034,
+      "crawlers": 587014,
+      "weak": 9,
+      "duplicate_requests": 0,
+      "duplicate_crawlers": 0,
+      "orphan_matches": 0
+    }
+  },
+  {
+    "name": "consumer outage retains unconsumed events",
+    "pass": true,
+    "detail": {
+      "pipeline": {
+        "accepted": 1209356,
+        "capacity": 0,
+        "dropped": 0,
+        "durable": 1,
+        "errors": 17,
+        "published": 1209098,
+        "publisher_workers": 3,
+        "queued": 286,
+        "recovered": 0,
+        "spool_bytes": 2113957,
+        "spool_capacity_bytes": 1073741824
+      },
+      "database": {
+        "processed": 1174057,
+        "requests": 587034,
+        "crawlers": 587014,
+        "weak": 9,
+        "duplicate_requests": 0,
+        "duplicate_crawlers": 0,
+        "orphan_matches": 0
+      }
+    }
+  },
+  {
+    "name": "consumer outage driver passed",
+    "pass": true,
+    "detail": 0
+  },
+  {
+    "name": "delivered event counts match database",
+    "pass": true,
+    "detail": {
+      "expected": 1258243,
+      "pipeline": {
+        "accepted": 1258243,
+        "capacity": 0,
+        "dropped": 0,
+        "durable": 1,
+        "errors": 17,
+        "published": 1258243,
+        "publisher_workers": 3,
+        "queued": 0,
+        "recovered": 0,
+        "spool_bytes": 0,
+        "spool_capacity_bytes": 1073741824
+      },
+      "database": {
+        "processed": 1258243,
+        "requests": 629127,
+        "crawlers": 629107,
+        "weak": 9,
+        "duplicate_requests": 0,
+        "duplicate_crawlers": 0,
+        "orphan_matches": 0
+      }
+    }
+  },
+  {
+    "name": "no duplicates or orphan matches",
+    "pass": true,
+    "detail": {
+      "processed": 1258243,
+      "requests": 629127,
+      "crawlers": 629107,
+      "weak": 9,
+      "duplicate_requests": 0,
+      "duplicate_crawlers": 0,
+      "orphan_matches": 0
+    }
+  },
+  {
+    "name": "all receipts have one event row",
+    "pass": true,
+    "detail": {
+      "processed": 1258243,
+      "requests": 629127,
+      "crawlers": 629107,
+      "weak": 9,
+      "duplicate_requests": 0,
+      "duplicate_crawlers": 0,
+      "orphan_matches": 0
+    }
+  },
+  {
+    "name": "database buffer driver passed",
+    "pass": true,
+    "detail": 0
+  },
+  {
+    "name": "database outage causes consumer retry",
+    "pass": true,
+    "detail": {
+      "batches": 0,
+      "commit_ms": 0,
+      "fetch_errors": 0,
+      "heartbeat_at": 1791346732,
+      "last_persist_at": 0,
+      "persist_ms": 45002,
+      "persisted": 0,
+      "retrying_workers": 3,
+      "state": "retrying",
+      "workers": 3
+    }
+  },
+  {
+    "name": "delivered event counts match database",
+    "pass": true,
+    "detail": {
+      "expected": 1272821,
+      "pipeline": {
+        "accepted": 1272821,
+        "capacity": 0,
+        "dropped": 0,
+        "durable": 1,
+        "errors": 17,
+        "published": 1272821,
+        "publisher_workers": 3,
+        "queued": 0,
+        "recovered": 0,
+        "spool_bytes": 0,
+        "spool_capacity_bytes": 1073741824
+      },
+      "database": {
+        "processed": 1272821,
+        "requests": 636416,
+        "crawlers": 636396,
+        "weak": 9,
+        "duplicate_requests": 0,
+        "duplicate_crawlers": 0,
+        "orphan_matches": 0
+      }
+    }
+  },
+  {
+    "name": "no duplicates or orphan matches",
+    "pass": true,
+    "detail": {
+      "processed": 1272821,
+      "requests": 636416,
+      "crawlers": 636396,
+      "weak": 9,
+      "duplicate_requests": 0,
+      "duplicate_crawlers": 0,
+      "orphan_matches": 0
+    }
+  },
+  {
+    "name": "all receipts have one event row",
+    "pass": true,
+    "detail": {
+      "processed": 1272821,
+      "requests": 636416,
+      "crawlers": 636396,
+      "weak": 9,
+      "duplicate_requests": 0,
+      "duplicate_crawlers": 0,
+      "orphan_matches": 0
+    }
+  },
+  {
+    "name": "crash buffer driver passed",
+    "pass": true,
+    "detail": 0
+  },
+  {
+    "name": "durable pending events before SIGKILL",
+    "pass": true,
+    "detail": {
+      "accepted": 1283965,
+      "capacity": 0,
+      "dropped": 0,
+      "durable": 1,
+      "errors": 21,
+      "published": 1272821,
+      "publisher_workers": 3,
+      "queued": 11144,
+      "recovered": 0,
+      "spool_bytes": 85200141,
+      "spool_capacity_bytes": 1073741824
+    }
+  },
+  {
+    "name": "publisher restart recovered durable backlog",
+    "pass": true,
+    "detail": {
+      "before": {
+        "accepted": 1283965,
+        "capacity": 0,
+        "dropped": 0,
+        "durable": 1,
+        "errors": 21,
+        "published": 1272821,
+        "publisher_workers": 3,
+        "queued": 11144,
+        "recovered": 0,
+        "spool_bytes": 85200141,
+        "spool_capacity_bytes": 1073741824
+      },
+      "after": {
+        "accepted": 0,
+        "capacity": 0,
+        "dropped": 0,
+        "durable": 1,
+        "errors": 0,
+        "published": 11144,
+        "publisher_workers": 3,
+        "queued": 0,
+        "recovered": 11144,
+        "spool_bytes": 0,
+        "spool_capacity_bytes": 1073741824
+      }
+    }
+  },
+  {
+    "name": "delivered event counts match database",
+    "pass": true,
+    "detail": {
+      "expected": 1283965,
+      "pipeline": {
+        "accepted": 0,
+        "capacity": 0,
+        "dropped": 0,
+        "durable": 1,
+        "errors": 0,
+        "published": 11144,
+        "publisher_workers": 3,
+        "queued": 0,
+        "recovered": 11144,
+        "spool_bytes": 0,
+        "spool_capacity_bytes": 1073741824
+      },
+      "database": {
+        "processed": 1283965,
+        "requests": 641988,
+        "crawlers": 641968,
+        "weak": 9,
+        "duplicate_requests": 0,
+        "duplicate_crawlers": 0,
+        "orphan_matches": 0
+      }
+    }
+  },
+  {
+    "name": "no duplicates or orphan matches",
+    "pass": true,
+    "detail": {
+      "processed": 1283965,
+      "requests": 641988,
+      "crawlers": 641968,
+      "weak": 9,
+      "duplicate_requests": 0,
+      "duplicate_crawlers": 0,
+      "orphan_matches": 0
+    }
+  },
+  {
+    "name": "all receipts have one event row",
+    "pass": true,
+    "detail": {
+      "processed": 1283965,
+      "requests": 641988,
+      "crawlers": 641968,
+      "weak": 9,
+      "duplicate_requests": 0,
+      "duplicate_crawlers": 0,
+      "orphan_matches": 0
+    }
+  }
+]
