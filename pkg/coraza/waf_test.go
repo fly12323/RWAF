@@ -29,7 +29,7 @@ func TestMonitorAndDisabledRulePolicies(t *testing.T) {
 		disabled  []string
 		interrupt bool
 		score     bool
-	}{{"block", nil, true, true}, {"monitor", nil, false, true}, {"block", []string{"1001"}, false, false}} {
+	}{{"block", nil, true, false}, {"monitor", nil, false, false}, {"block", []string{"1001"}, false, false}} {
 		tx, err := e.NewTransactionWithPolicy(tc.mode, tc.disabled, nil)
 		if err != nil {
 			t.Fatal(err)

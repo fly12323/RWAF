@@ -2,6 +2,17 @@ package integration
 
 import (
 	"context"
+	"github.com/fly12323/RWAF/internal/config"
+	"github.com/fly12323/RWAF/internal/dao"
+	"github.com/fly12323/RWAF/internal/middleware"
+	"github.com/fly12323/RWAF/internal/model"
+	"github.com/fly12323/RWAF/internal/ser/protection"
+	"github.com/fly12323/RWAF/internal/ser/ratelimit"
+	"github.com/fly12323/RWAF/internal/service"
+	"github.com/fly12323/RWAF/pkg/coraza"
+	"github.com/fly12323/RWAF/pkg/events"
+	"github.com/fly12323/RWAF/pkg/jwt"
+	"github.com/fly12323/RWAF/pkg/proxy"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -16,17 +27,6 @@ import (
 	"strings"
 	"testing"
 	"time"
-	"github.com/fly12323/RWAF/internal/config"
-	"github.com/fly12323/RWAF/internal/dao"
-	"github.com/fly12323/RWAF/internal/middleware"
-	"github.com/fly12323/RWAF/internal/model"
-	"github.com/fly12323/RWAF/internal/ser/protection"
-	"github.com/fly12323/RWAF/internal/ser/ratelimit"
-	"github.com/fly12323/RWAF/internal/service"
-	"github.com/fly12323/RWAF/pkg/coraza"
-	"github.com/fly12323/RWAF/pkg/events"
-	"github.com/fly12323/RWAF/pkg/jwt"
-	"github.com/fly12323/RWAF/pkg/proxy"
 )
 
 func TestPostgresKafkaRedisAndProxy(t *testing.T) {
@@ -50,6 +50,30 @@ func TestPostgresKafkaRedisAndProxy(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer dao.CloseDB()
+	// The catalogue is derived from real CRS files; only the disposable DB is updated.
+	cfg.WAF.CrsDir, _ = filepath.Abs("../../configs/rules/crs")
+	cfg.WAF.CustomRulesDir = t.TempDir()
+	catalog := service.NewRuleService()
+	if err := catalog.SyncBuiltinCatalog(); err != nil {
+		t.Fatal(err)
+	}
+	rule, err := catalog.GetRuleByRuleID("942120")
+	if err != nil || rule.Profile.ParanoiaLevel != 2 || rule.Profile.FalsePositiveRisk != "moderate" {
+		t.Fatal("catalogue PL metadata", rule, err)
+	}
+	page, total, err := catalog.GetRuleList(1, 2, "", "", "", "high", "request")
+	if err != nil || len(page) != 2 || total < 3 {
+		t.Fatal("risk-filtered pagination", page, total, err)
+	}
+	for _, r := range page {
+		if r.Profile.FalsePositiveRisk != "high" || r.Profile.Scope != "request" {
+			t.Fatal("filter leaked unmatched rule", r)
+		}
+	}
+	last, catalogCount, err := catalog.GetRuleList(int(total)+1, 2, "", "", "", "high", "request")
+	if err != nil || len(last) != 0 || catalogCount != total {
+		t.Fatal("out-of-range catalogue page", catalogCount, err)
+	}
 	if err := dao.InitRedis(); err != nil {
 		t.Fatal(err)
 	}
@@ -83,7 +107,7 @@ func TestPostgresKafkaRedisAndProxy(t *testing.T) {
 	}()
 
 	requestID := uuid.NewString()
-	e := events.RequestEvent(&model.RequestLog{RequestID: requestID, Action: "block", URI: "/test"}, []model.RuleMatch{{RuleID: "1001", Severity: "CRITICAL"}})
+	e := events.RequestEvent(&model.RequestLog{RequestID: requestID, Action: "block", URI: "/test", ProtectionMode: "monitor", PolicyVersion: "integration-version", ScoreBasis: "crs_anomaly", Detections: []model.Detection{{Source: "cc", Action: "block", Reason: "URI limit"}}}, []model.RuleMatch{{RuleID: "1001", Severity: "CRITICAL"}})
 	for i := 0; i < 2; i++ {
 		if err := publisher.Submit(e); err != nil {
 			t.Fatal(err)
@@ -100,6 +124,9 @@ func TestPostgresKafkaRedisAndProxy(t *testing.T) {
 	var entry model.RequestLog
 	if err := dao.GetDB().Where("request_id = ?", requestID).First(&entry).Error; err != nil {
 		t.Fatal(err)
+	}
+	if entry.ProtectionMode != "monitor" || entry.PolicyVersion != "integration-version" || entry.ScoreBasis != "crs_anomaly" || len(entry.Detections) != 1 || entry.Detections[0].Source != "cc" {
+		t.Fatalf("decision metadata lost through Kafka/Postgres: %+v", entry)
 	}
 	waitFor(t, func() bool {
 		var n int64
@@ -166,6 +193,26 @@ func TestPostgresKafkaRedisAndProxy(t *testing.T) {
 	allowed, _, err := limiter.CheckLimitContext(ctx, 2, ip, "/other", cc)
 	if err != nil || !allowed {
 		t.Fatal("site counters are not isolated", err)
+	}
+	// Run the actual Redis Lua script and verify which action/window rejected.
+	cc.Action = "delay"
+	cc.URILimits = `[{"uri":"/login","requests_per_minute":1,"action":"block"}]`
+	result, err := limiter.Evaluate(ctx, 3, ip, "/login", cc)
+	if err != nil || !result.Allowed {
+		t.Fatal("first URI request", result, err)
+	}
+	result, err = limiter.Evaluate(ctx, 3, ip, "/login", cc)
+	if err != nil || result.Allowed || result.Action != "block" || result.Rule != "/login" || result.RetryAfter <= 0 || result.RetryAfter > time.Minute {
+		t.Fatal("URI rejection metadata", result, err)
+	}
+	for i := 0; i < 2; i++ {
+		if _, err := limiter.Evaluate(ctx, 3, ip, "/other", cc); err != nil {
+			t.Fatal(err)
+		}
+	}
+	result, err = limiter.Evaluate(ctx, 3, ip, "/other", cc)
+	if err != nil || result.Allowed || result.Action != "delay" || result.Rule != "站点 / IP 总限额" {
+		t.Fatal("global rejection metadata", result, err)
 	}
 
 	dir := t.TempDir()
@@ -247,6 +294,11 @@ func TestPostgresKafkaRedisAndProxy(t *testing.T) {
 	if callSecond() != 200 {
 		t.Fatal("global mode change did not update second site")
 	}
+	waitFor(t, func() bool {
+		var n int64
+		dao.GetDB().Model(&model.RequestLog{}).Where("site_id = ? AND protection_mode = ? AND action = ? AND score_basis = ?", site.ID, "monitor", "pass", "crs_anomaly").Count(&n)
+		return n > 0
+	})
 	policy.WafMode = "block"
 	policy.Enabled = false
 	if err := protection.SaveConfig(&policy); err != nil {

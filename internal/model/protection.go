@@ -8,6 +8,7 @@ type ProtectionConfig struct {
 	Enabled                 bool      `json:"enabled"`
 	WafMode                 string    `json:"waf_mode"`
 	ScoreThreshold          int       `json:"score_threshold"`
+	ParanoiaLevel           int       `json:"paranoia_level" gorm:"not null;default:1"`
 	EnabledRuleCategories   []string  `json:"enabled_rule_categories" gorm:"serializer:json;type:jsonb"`
 	DisabledRuleIDs         []string  `json:"disabled_rule_ids" gorm:"serializer:json;type:jsonb"`
 	RuleEngineEnabled       bool      `json:"rule_engine_enabled"`
@@ -39,7 +40,7 @@ func DefaultProtectionConfig(mode string, threshold int) ProtectionConfig {
 	if threshold <= 0 {
 		threshold = 15
 	}
-	return ProtectionConfig{ID: 1, Enabled: true, WafMode: mode, ScoreThreshold: threshold,
+	return ProtectionConfig{ID: 1, Enabled: true, WafMode: mode, ScoreThreshold: threshold, ParanoiaLevel: 1,
 		EnabledRuleCategories: []string{}, DisabledRuleIDs: []string{}, RuleEngineEnabled: true,
 		CrawlerDetectionEnabled: true, CrawlerScannerAction: "log", CrawlerBotAction: "log", CrawlerCrawlerAction: "log",
 		IPBlacklistEnabled: true, IPWhitelistEnabled: true, CCProtectionEnabled: true, CCRequestsPerMinute: 100,

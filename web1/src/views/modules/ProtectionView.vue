@@ -15,14 +15,24 @@
           <SettingSwitch v-for="toggle in toggles" :key="toggle.key" v-model="form[toggle.key]" :label="toggle.label" />
         </div>
         <p class="hint">关闭防护总开关后，站点仍转发请求并记录日志。请求体大小限制仍有效。</p>
+		<label class="field-label">全局执行模式<select class="input" v-model="form.waf_mode"><option value="block">拦截模式</option><option value="monitor">观察模式</option></select></label>
+		<p class="hint">观察模式记录黑名单、CC、爬虫与规则命中，不执行阻断、延迟或自动封禁。请求体限制与依赖故障错误仍有效；IP 白名单豁免行为不变。</p>
       </section>
       <section class="config-card" v-show="activePage === 1">
         <h3>规则引擎</h3><SettingSwitch v-model="form.rule_engine_enabled" label="规则引擎" />
-        <div class="fields">
-          <label>防护模式<select class="input" v-model="form.waf_mode"><option value="block">拦截模式</option><option value="monitor">监控模式</option></select></label>
-          <label>风险评分阈值<input class="input" type="number" min="1" required v-model.number="form.score_threshold" /></label>
+        <div class="preset-grid">
+          <div v-for="preset in presets" :key="preset.id" class="preset-card">
+            <strong>{{ preset.name }}</strong><span>PL{{ preset.paranoia_level }} · 异常分阈值 {{ preset.score_threshold }}</span>
+            <p class="hint">{{ preset.description }}</p>
+            <button type="button" class="btn btn-secondary" @click="stagePreset(preset)">填入此预设</button>
+          </div>
         </div>
-        <p class="hint">监控模式仅让规则引擎记录并放行；名单、CC 和爬虫防护仍按各自设置执行。</p>
+        <p class="hint">预设只填入检测级别和阈值，保存后才生效。保留现有分类范围、禁用 ID、执行模式与各模块开关；分类或禁用 ID 仍会限制检测覆盖。三个预设均采用阈值 5，低误报指相同阈值下相对其他 PL；若当前阈值更高，应用预设可能增加拦截。提高阈值可能放过单条攻击。</p>
+        <div class="fields">
+          <label>检测级别<select class="input" v-model.number="form.paranoia_level"><option :value="1">PL1 · 基础检测</option><option :value="2">PL2 · 扩展检测</option><option :value="3">PL3 · 严格检测</option><option :value="4">PL4 · 极严格检测</option></select></label>
+          <label>CRS 入站异常分阈值<input class="input" type="number" min="1" required v-model.number="form.score_threshold" /></label>
+        </div>
+        <p class="hint">阈值使用 CRS 运行时异常分，不再按命中规则的严重级别重复求和。自定义规则中的显式 deny 仍可直接拒绝请求；仅提高阈值不会关闭这些规则。历史阈值数值保留，请根据新评分含义评估。</p>
         <label class="field-label">启用的攻击规则分类</label>
         <div class="switches"><label v-for="category in categories" :key="category.id"><input type="checkbox" :value="category.id" v-model="form.enabled_rule_categories" />{{ category.label }}</label></div>
         <p class="hint">不选择分类时启用全部；基础协议规则始终保留。自定义规则内容在“规则管理”维护。</p>
@@ -32,11 +42,11 @@
         <h3>CC 防护</h3><SettingSwitch v-model="form.cc_protection_enabled" label="CC 防护" />
         <div class="fields">
           <label>每站点 / IP 请求限额（次 / 60 秒）<input class="input" type="number" min="1" required v-model.number="form.cc_requests_per_minute" /></label>
-          <label>超限动作<select class="input" v-model="form.cc_action"><option value="block">拒绝请求（429）</option><option value="delay">延迟后继续检查</option></select></label>
-          <label>延迟（毫秒）<input class="input" type="number" min="0" max="30000" required v-model.number="form.cc_delay_ms" /></label>
+          <label>超限动作<select class="input" v-model="form.cc_action"><option value="block">拒绝请求（429）</option><option value="delay">有界等待，重新检查限额</option></select></label>
+          <label>最长等待（毫秒）<input class="input" type="number" min="0" max="30000" required v-model.number="form.cc_delay_ms" /></label>
         </div>
         <label class="field-label">URI 限流规则<textarea class="input" rows="4" v-model="form.cc_uri_limits" spellcheck="false" /></label>
-        <p class="hint">例如 [{"uri":"/login","requests_per_minute":20}]。使用首个匹配项，超限动作统一采用上面的设置。各站点共用参数，计数独立。</p>
+        <p class="hint">例如 [{"uri":"/login","requests_per_minute":20,"action":"block"}]。使用首个匹配 URI 项；其 action 可为 block 或 delay，省略时继承全局动作。总限额与 URI 限额同时有效，按实际超限项执行动作。每站点最多等待 64 个请求，队列满或等待结束仍超限时返回 429。各站点计数独立。</p>
       </section>
       <section class="config-card" v-show="activePage === 3">
         <h3>爬虫检测</h3><SettingSwitch v-model="form.crawler_detection_enabled" label="爬虫检测" />
@@ -49,7 +59,7 @@
           <label>统计窗口（秒）<input class="input" type="number" min="1" required v-model.number="form.auto_block_duration" /></label>
           <label>封禁时长（小时，0 表示永久）<input class="input" type="number" min="0" required v-model.number="form.auto_block_hours" /></label>
         </div>
-        <p class="hint">按站点 / IP 统计规则引擎实际拦截次数。达到阈值后加入全局黑名单；需开启黑名单防护才能拒绝后续请求。</p>
+        <p class="hint">仅按站点 / IP 统计规则引擎实际拦截次数，CC、爬虫命中及观察模式不触发自动封禁。达到阈值后加入全局黑名单；需开启黑名单防护才能拒绝后续请求。</p>
       </section>
       <p class="hint">切换分组会保留未保存的修改。保存会提交前五组防护配置；弱口令检测在对应页单独保存。</p><div class="save-row"><button class="btn btn-primary" type="submit" :disabled="saving">{{ saving ? '保存中…' : '保存全局配置' }}</button></div>
     </form>
@@ -66,7 +76,14 @@ import { useRoute } from 'vue-router'
 import WeakPasswordConfigPanel from '@/components/WeakPasswordConfigPanel.vue'
 import type { ProtectionConfig } from '@/types/api'
 
-const form = reactive<ProtectionConfig>({ enabled: true, waf_mode: 'block', score_threshold: 15,
+type Preset = { id: string; name: string; paranoia_level: number; score_threshold: number; description: string }
+const presets = ref<Preset[]>([])
+const stagePreset = (preset: Preset) => {
+  form.paranoia_level = preset.paranoia_level; form.score_threshold = preset.score_threshold
+  notice.value = `已填入“${preset.name}”，尚未保存。分类范围和禁用 ID 保持当前选择；所有站点将在保存后使用这些设置。`
+}
+
+const form = reactive<ProtectionConfig>({ enabled: true, waf_mode: 'block', score_threshold: 15, paranoia_level: 1,
   enabled_rule_categories: [], disabled_rule_ids: [], rule_engine_enabled: true,
   crawler_detection_enabled: true, crawler_scanner_action: 'log', crawler_bot_action: 'log', crawler_crawler_action: 'log',
   cc_protection_enabled: true, cc_requests_per_minute: 100, cc_action: 'block', cc_delay_ms: 1000, cc_uri_limits: '[]',
@@ -74,7 +91,7 @@ const form = reactive<ProtectionConfig>({ enabled: true, waf_mode: 'block', scor
   ip_blacklist_enabled: true, ip_whitelist_enabled: true })
 const loading = ref(true), loaded = ref(false), saving = ref(false), disabledIDs = ref(''), error = ref(''), notice = ref('')
 const weakPanel = ref<InstanceType<typeof WeakPasswordConfigPanel> | null>(null)
-const activePage = ref(useRoute().query.section === 'weak-password' ? 5 : useRoute().query.section === 'crawler' ? 3 : 0)
+const activePage = ref(useRoute().query.section === 'weak-password' ? 5 : useRoute().query.section === 'crawler' ? 3 : useRoute().query.section === 'rules' ? 1 : 0)
 const pages = ['基础与名单', '规则引擎', 'CC 防护', '爬虫检测', '自动封禁', '弱口令检测']
 const toggles = [
   { key: 'enabled', label: '防护总开关' },
@@ -85,11 +102,11 @@ const toggles = [
 const crawlerActions = [ { key: 'crawler_scanner_action', label: '扫描器' }, { key: 'crawler_bot_action', label: '机器人' }, { key: 'crawler_crawler_action', label: '爬虫' } ] as const
 const categories = [ { id: 'sqli', label: 'SQL 注入' }, { id: 'xss', label: 'XSS' }, { id: 'lfi', label: '本地文件包含' },
   { id: 'rfi', label: '远程文件包含' }, { id: 'rce', label: '命令执行' }, { id: 'php', label: 'PHP' },
-  { id: 'nodejs', label: 'Node.js' }, { id: 'java', label: 'Java' }, { id: 'scanner', label: '扫描器' },
+  { id: 'nodejs', label: '通用应用攻击（含 Node.js）' }, { id: 'java', label: 'Java' }, { id: 'scanner', label: '扫描器' },
   { id: 'session', label: '会话攻击' }, { id: 'custom', label: '自定义规则' } ]
 const load = async () => {
   loading.value = true; error.value = ''; notice.value = ''
-  try { Object.assign(form, await api.protectionConfig()); disabledIDs.value = form.disabled_rule_ids.join(', '); loaded.value = true }
+  try { Object.assign(form, await api.protectionConfig()); form.paranoia_level ||= 1; disabledIDs.value = form.disabled_rule_ids.join(', '); presets.value = await api.rulePresets(); loaded.value = true }
   catch (e) { loaded.value = false; error.value = e instanceof Error ? e.message : '配置加载失败' }
   finally { loading.value = false }
 }
@@ -109,6 +126,9 @@ onMounted(load)
 </script>
 
 <style scoped>
+.preset-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:12px; margin:16px 0; }
+.preset-card { display:flex; flex-direction:column; align-items:flex-start; gap:8px; padding:16px; border:1px solid var(--color-border); border-radius:var(--radius-md); }
+.preset-card span { font-size:var(--text-sm); color:var(--color-text-muted); }
 .protection-page { display: flex; flex-direction: column; gap: var(--spacing-md); }
 .page-header { display: flex; justify-content: space-between; align-items: center; gap: var(--spacing-md); }
 .page-header h2 { font-size: var(--text-lg); margin-bottom: 6px; }

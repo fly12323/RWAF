@@ -120,9 +120,9 @@
         </div>
         <div class="status-body">
           <div class="status-item">
-            <span class="status-label">WAF 模式</span>
-            <span class="status-value" :class="wafStatus.waf_mode === 'On' ? 'success' : ''">
-              {{ wafStatus.waf_mode === 'On' ? '防护中' : wafStatus.waf_mode === 'DetectionOnly' ? '监控模式' : '未防护' }}
+            <span class="status-label">全局执行模式</span>
+            <span class="status-value" :class="(wafStatus.protection_mode ? wafStatus.protection_mode === 'block' : wafStatus.waf_mode === 'On') ? 'success' : ''">
+              {{ wafStatus.protection_mode ? protectionModeLabel(wafStatus.protection_mode) : wafStatus.waf_mode === 'On' ? '防护中' : wafStatus.waf_mode === 'DetectionOnly' ? '观察模式' : '未防护' }}
             </span>
           </div>
           <div class="status-item">
@@ -151,6 +151,7 @@
 import { ref, reactive, onMounted, onUnmounted, h, watch } from 'vue'
 import * as echarts from 'echarts'
 import { api } from '@/api'
+import { protectionModeLabel } from '@/utils/request'
 import { useTheme } from '@/stores/theme'
 import type { LogTrend, AttackType, AttackIP, RequestLog, WAFStatus, RuntimeSnapshot, SecurityAlert } from '@/types/api'
 

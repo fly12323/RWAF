@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/corazawaf/coraza/v3"
+	"github.com/corazawaf/coraza/v3/experimental/plugins/plugintypes"
 	"github.com/corazawaf/coraza/v3/types"
 	"github.com/fsnotify/fsnotify"
 )
@@ -153,21 +154,48 @@ func (t *Transaction) ProcessRequestBody() *types.Interruption {
 	return intru
 }
 
+// InspectRequestBody preserves both body-write interruptions and parser errors.
+func (t *Transaction) InspectRequestBody(data []byte) (*types.Interruption, error) {
+	interruption, _, err := t.tx.WriteRequestBody(data)
+	if interruption != nil || err != nil {
+		return interruption, err
+	}
+	return t.tx.ProcessRequestBody()
+}
+
 // GetRiskScore 计算风险评分
 func (t *Transaction) GetRiskScore() int {
+	// Keep the pinned Coraza plugin variable interface confined to this adapter.
+	v, ok := t.tx.(interface {
+		Variables() plugintypes.TransactionVariables
+	})
+	if !ok {
+		return 0
+	}
+	tx := v.Variables().TX()
+	read := func(key string) int {
+		values := tx.Get(key)
+		if len(values) == 0 {
+			return 0
+		}
+		n, _ := strconv.Atoi(values[0])
+		return n
+	}
+	// Per-PL scores cover direct interruptions before CRS aggregation runs.
+	level := read("blocking_paranoia_level")
+	if level < 1 {
+		level = 1
+	}
+	if level > 4 {
+		level = 4
+	}
 	score := 0
-	for _, rule := range t.tx.MatchedRules() {
-		switch rule.Rule().Severity() {
-		case types.RuleSeverityCritical:
-			score += 10
-		case types.RuleSeverityError:
-			score += 8
-		case types.RuleSeverityWarning:
-			score += 5
-		case types.RuleSeverityNotice:
-			score += 2
-		case types.RuleSeverityInfo:
-			score += 1
+	for i := 1; i <= level; i++ {
+		score += read(fmt.Sprintf("inbound_anomaly_score_pl%d", i))
+	}
+	for _, key := range []string{"blocking_inbound_anomaly_score", "inbound_anomaly_score", "anomaly_score"} {
+		if n := read(key); n > score {
+			score = n
 		}
 	}
 	return score
@@ -177,12 +205,17 @@ func (t *Transaction) GetRiskScore() int {
 func (t *Transaction) GetMatchedRuleDetails() []MatchedRuleDetail {
 	var details []MatchedRuleDetail
 	for _, rule := range t.tx.MatchedRules() {
+		// The policy initializer is infrastructure, not a detection.
+		if rule.Rule().ID() == 1000000001 {
+			continue
+		}
 		detail := MatchedRuleDetail{
 			RuleID:   fmt.Sprintf("%d", rule.Rule().ID()),
 			RuleFile: rule.Rule().File(),
-			RuleMsg:  "",
+			RuleMsg:  rule.Message(),
 			Severity: severityToString(rule.Rule().Severity()),
-			Score:    severityToScore(rule.Rule().Severity()),
+			// Rule severity does not determine its actual TX score contribution.
+			Score: 0,
 		}
 
 		// 获取匹配的数据
@@ -201,6 +234,7 @@ func (t *Transaction) GetMatchedRuleDetails() []MatchedRuleDetail {
 
 // Close 关闭事务
 func (t *Transaction) Close() {
+	t.tx.ProcessLogging()
 	t.tx.Close()
 }
 
@@ -229,24 +263,6 @@ func severityToString(severity types.RuleSeverity) string {
 		return "INFO"
 	default:
 		return "UNKNOWN"
-	}
-}
-
-// severityToScore 将严重级别转换为分数
-func severityToScore(severity types.RuleSeverity) int {
-	switch severity {
-	case types.RuleSeverityCritical:
-		return 10
-	case types.RuleSeverityError:
-		return 8
-	case types.RuleSeverityWarning:
-		return 5
-	case types.RuleSeverityNotice:
-		return 2
-	case types.RuleSeverityInfo:
-		return 1
-	default:
-		return 1
 	}
 }
 
@@ -332,7 +348,7 @@ func (e *WAFEngine) reloadRules() error {
 	}
 	e.mu.RUnlock()
 	for k, v := range specs {
-		v.engine, err = buildEngine(e.config, v.mode, v.disabled, v.categories)
+		v.engine, err = buildEngine(e.config, v.mode, v.disabled, v.categories, v.threshold, v.paranoiaLevel)
 		if err != nil {
 			return err
 		}
@@ -351,22 +367,35 @@ func (e *WAFEngine) ReloadNow() error {
 }
 
 type policyWAF struct {
-	engine     coraza.WAF
-	mode       string
-	disabled   []string
-	categories []string
+	engine        coraza.WAF
+	mode          string
+	disabled      []string
+	categories    []string
+	threshold     int
+	paranoiaLevel int
 }
 
 func (e *WAFEngine) BlockingEnabled() bool { return e.config.EngineMode == "On" }
-func (e *WAFEngine) NewTransactionWithPolicy(mode string, disabled, categories []string) (*Transaction, error) {
-	waf, err := e.PolicyEngine(mode, disabled, categories)
+func (e *WAFEngine) NewTransactionWithPolicy(mode string, disabled, categories []string, threshold ...int) (*Transaction, error) {
+	waf, err := e.PolicyEngine(mode, disabled, categories, threshold...)
 	if err != nil {
 		return nil, err
 	}
 	return &Transaction{tx: waf.NewTransaction()}, nil
 }
-func (e *WAFEngine) PolicyEngine(mode string, disabled, categories []string) (coraza.WAF, error) {
-	data, _ := json.Marshal([]interface{}{mode, disabled, categories})
+func (e *WAFEngine) PolicyEngine(mode string, disabled, categories []string, thresholds ...int) (coraza.WAF, error) {
+	threshold := 15
+	if len(thresholds) > 0 {
+		threshold = thresholds[0]
+	}
+	if threshold <= 0 {
+		return nil, fmt.Errorf("规则异常分阈值必须大于零")
+	}
+	level, err := policyParanoiaLevel(thresholds)
+	if err != nil {
+		return nil, err
+	}
+	data, _ := json.Marshal([]interface{}{mode, disabled, categories, threshold, level})
 	key := string(data)
 	e.mu.RLock()
 	policy, ok := e.policies[key]
@@ -383,7 +412,7 @@ func (e *WAFEngine) PolicyEngine(mode string, disabled, categories []string) (co
 		if ok {
 			return policy.engine, nil
 		}
-		engine, err := buildEngine(e.config, mode, disabled, categories)
+		engine, err := buildEngine(e.config, mode, disabled, categories, threshold, level)
 		if err != nil {
 			return nil, err
 		}
@@ -391,7 +420,7 @@ func (e *WAFEngine) PolicyEngine(mode string, disabled, categories []string) (co
 		if len(e.policies) >= 256 {
 			e.policies = make(map[string]policyWAF)
 		}
-		e.policies[key] = policyWAF{engine: engine, mode: mode, disabled: append([]string(nil), disabled...), categories: append([]string(nil), categories...)}
+		e.policies[key] = policyWAF{engine: engine, mode: mode, disabled: append([]string(nil), disabled...), categories: append([]string(nil), categories...), threshold: threshold, paranoiaLevel: level}
 		e.mu.Unlock()
 		return engine, nil
 	})
@@ -401,7 +430,22 @@ func (e *WAFEngine) PolicyEngine(mode string, disabled, categories []string) (co
 	return result.(coraza.WAF), nil
 }
 
-func buildEngine(cfg *WAFConfig, mode string, disabled, categories []string) (coraza.WAF, error) {
+func policyParanoiaLevel(options []int) (int, error) {
+	level := 1
+	if len(options) > 1 && options[1] != 0 {
+		level = options[1]
+	}
+	if level < 1 || level > 4 {
+		return 0, fmt.Errorf("规则检测级别必须在 PL1 到 PL4 之间")
+	}
+	return level, nil
+}
+
+func buildEngine(cfg *WAFConfig, mode string, disabled, categories []string, thresholds ...int) (coraza.WAF, error) {
+	level, err := policyParanoiaLevel(thresholds)
+	if err != nil {
+		return nil, err
+	}
 	wafConfig := coraza.NewWAFConfig().WithDirectives(fmt.Sprintf("SecRequestBodyLimit %d\nSecRequestBodyAccess On\nSecResponseBodyAccess Off", cfg.RequestBodyLimit))
 	directives, err := loadRules(cfg)
 	if err != nil {
@@ -415,8 +459,21 @@ func buildEngine(cfg *WAFConfig, mode string, disabled, categories []string) (co
 		}
 		allowed[category] = true
 	}
+	threshold := 15
+	if len(thresholds) > 0 {
+		threshold = thresholds[0]
+	}
+	if threshold <= 0 {
+		return nil, fmt.Errorf("规则异常分阈值必须大于零")
+	}
+	thresholdAdded := false
 	for _, directive := range directives {
 		includePath := strings.TrimPrefix(directive, "Include ")
+		// Apply after crs-setup, before detection rules; do not edit CRS files.
+		if !thresholdAdded && filepath.Base(includePath) != "crs-setup.conf" {
+			wafConfig = wafConfig.WithDirectives(fmt.Sprintf(`SecAction "id:1000000001,phase:1,pass,nolog,setvar:tx.inbound_anomaly_score_threshold=%d,setvar:tx.blocking_paranoia_level=%d,setvar:tx.detection_paranoia_level=%d"`, threshold, level, level))
+			thresholdAdded = true
+		}
 		customDir, pathErr := filepath.Abs(cfg.CustomRulesDir)
 		includeAbs, includeErr := filepath.Abs(includePath)
 		rel, relErr := filepath.Rel(customDir, includeAbs)
@@ -437,6 +494,9 @@ func buildEngine(cfg *WAFConfig, mode string, disabled, categories []string) (co
 		n, err := strconv.Atoi(id)
 		if err != nil || n <= 0 {
 			return nil, fmt.Errorf("无效规则 ID: %s", id)
+		}
+		if n == 1000000001 {
+			return nil, fmt.Errorf("不能禁用系统策略初始化规则")
 		}
 		wafConfig = wafConfig.WithDirectives("SecRuleRemoveById " + id)
 	}

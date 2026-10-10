@@ -3,13 +3,21 @@ package proxy
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/fly12323/RWAF/internal/config"
+	"github.com/fly12323/RWAF/internal/model"
+	"github.com/fly12323/RWAF/internal/ser/autoblock"
+	"github.com/fly12323/RWAF/internal/ser/crawler"
+	"github.com/fly12323/RWAF/internal/ser/ipcache"
+	"github.com/fly12323/RWAF/internal/ser/protection"
+	"github.com/fly12323/RWAF/internal/ser/ratelimit"
+	"github.com/fly12323/RWAF/internal/ser/weakpassword"
+	"github.com/fly12323/RWAF/pkg/coraza"
+	"github.com/fly12323/RWAF/pkg/events"
+	"github.com/fly12323/RWAF/pkg/telemetry"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/redis/go-redis/v9"
 	"html/template"
 	"io"
 	"log"
@@ -20,18 +28,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"github.com/fly12323/RWAF/internal/config"
-	"github.com/fly12323/RWAF/internal/dao"
-	"github.com/fly12323/RWAF/internal/model"
-	"github.com/fly12323/RWAF/internal/ser/blacklist"
-	"github.com/fly12323/RWAF/internal/ser/crawler"
-	"github.com/fly12323/RWAF/internal/ser/ipcache"
-	"github.com/fly12323/RWAF/internal/ser/protection"
-	"github.com/fly12323/RWAF/internal/ser/ratelimit"
-	"github.com/fly12323/RWAF/internal/ser/weakpassword"
-	"github.com/fly12323/RWAF/pkg/coraza"
-	"github.com/fly12323/RWAF/pkg/events"
-	"github.com/fly12323/RWAF/pkg/telemetry"
 )
 
 const captureLimit = 8192
@@ -40,9 +36,15 @@ type ReverseProxy struct {
 	siteID         uint
 	balancer       Balancer
 	wafEngine      *coraza.WAFEngine
-	ccProtection   *ratelimit.CCProtectionService
+	ccProtection   ccLimiter
 	crawlerService *crawler.CrawlerService
 	transport      *http.Transport
+	ccWaiters      chan struct{}
+	loadPolicy     func() (*model.ProtectionConfig, error)
+	isWhitelisted  func(string) (bool, error)
+	isBlocked      func(string) (bool, *model.IPBlacklist, error)
+	publish        func(events.Event) error
+	autoBlock      func(context.Context, uint, string, string, *model.AutoBlockConfig) error
 }
 
 func NewReverseProxy(siteID uint, targets []Target, strategy string, engine *coraza.WAFEngine) *ReverseProxy {
@@ -62,7 +64,9 @@ func NewReverseProxy(siteID uint, targets []Target, strategy string, engine *cor
 	transport.DisableCompression = true
 	return &ReverseProxy{siteID: siteID, balancer: balancer, wafEngine: engine,
 		ccProtection:   ratelimit.NewCCProtectionService(),
-		crawlerService: crawler.NewCrawlerService(), transport: transport}
+		crawlerService: crawler.NewCrawlerService(), transport: transport, ccWaiters: make(chan struct{}, 64),
+		loadPolicy: protection.GetConfig, isWhitelisted: ipcache.IsWhitelisted, isBlocked: ipcache.IsBlocked,
+		publish: events.Publish, autoBlock: autoblock.RecordRuleBlock}
 }
 
 func (p *ReverseProxy) Close() { p.transport.CloseIdleConnections() }
@@ -75,19 +79,39 @@ func (p *ReverseProxy) Handler() gin.HandlerFunc {
 		c.Set("request_id", requestID)
 		c.Header("X-Request-ID", requestID)
 		ip := c.ClientIP()
-		authTicket := weakpassword.Match(c.Request)
-		if authTicket != nil {
+		var tx *coraza.Transaction
+		var body []byte
+		defer func() {
+			if !c.GetBool("request_recorded") {
+				p.record(c, requestID, ip, started, tx, body, c.Writer.Status(), nil, nil, "error", "")
+			}
+			if tx != nil {
+				tx.Close()
+			}
+		}()
+		fail := func(status int, source, reason string) {
+			c.Set("decision_source", source)
+			c.Set("decision_reason", reason)
+			c.AbortWithStatusJSON(status, gin.H{"message": reason})
 		}
-		policy, err := protection.GetConfig()
+		authTicket := weakpassword.Match(c.Request)
+		state := &decisionState{mode: "unavailable"}
+		c.Set("decision_state", state)
+		policy, err := p.loadPolicy()
 		if err != nil {
-			c.AbortWithStatusJSON(503, gin.H{"message": "防护配置暂不可用"})
+			fail(503, "policy_error", "防护配置暂不可用")
 			return
 		}
+		state.mode, state.version = policy.WafMode, policy.UpdatedAt.UTC().Format(time.RFC3339Nano)
+		if !policy.Enabled {
+			state.mode = "off"
+		}
+		c.Set("decision_state", state)
 		trusted := !policy.Enabled
 		if !trusted && policy.IPWhitelistEnabled {
-			trusted, err = ipcache.IsWhitelisted(ip)
+			trusted, err = p.isWhitelisted(ip)
 			if err != nil {
-				c.AbortWithStatus(503)
+				fail(503, "ip_list_error", "IP 名单暂不可用")
 				return
 			}
 		}
@@ -99,12 +123,12 @@ func (p *ReverseProxy) Handler() gin.HandlerFunc {
 			c.Abort()
 		}
 		if !trusted && policy.IPBlacklistEnabled {
-			blocked, entry, err := ipcache.IsBlocked(ip)
+			blocked, entry, err := p.isBlocked(ip)
 			if err != nil {
-				c.AbortWithStatus(503)
+				fail(503, "ip_list_error", "IP 名单暂不可用")
 				return
 			}
-			if blocked {
+			if blocked && state.enforce("ipban", "block", entry.Reason) {
 				block(403, "ipban", "您的IP已被封禁", entry.Reason)
 				return
 			}
@@ -112,23 +136,30 @@ func (p *ReverseProxy) Handler() gin.HandlerFunc {
 		if !trusted && policy.CCProtectionEnabled {
 			cc := policy.CCConfig()
 			ctx, cancel := context.WithTimeout(c.Request.Context(), time.Second)
-			allowed, _, err := p.ccProtection.CheckLimitContext(ctx, p.siteID, ip, c.Request.URL.Path, cc)
+			result, err := p.ccProtection.Evaluate(ctx, p.siteID, ip, c.Request.URL.Path, cc)
 			cancel()
 			if err != nil {
-				c.AbortWithStatusJSON(503, gin.H{"message": "限流服务暂不可用"})
+				fail(503, "cc_error", "限流服务暂不可用")
 				return
 			}
-			if !allowed {
-				if cc.Action == "delay" {
-					timer := time.NewTimer(time.Duration(cc.DelayMs) * time.Millisecond)
-					select {
-					case <-timer.C:
-					case <-c.Request.Context().Done():
-						timer.Stop()
+			if !result.Allowed {
+				state.enforce("cc", result.Action, "超出限额："+result.Rule)
+			}
+			if !result.Allowed && state.mode == "block" {
+				if result.Action == "delay" {
+					result, err = p.waitForCC(c.Request.Context(), ip, c.Request.URL.Path, cc, result)
+					if err != nil {
+						if c.Request.Context().Err() != nil {
+							fail(499, "client_error", "客户端已取消请求")
+						} else {
+							fail(503, "cc_error", "限流等待失败")
+						}
 						return
 					}
-				} else {
-					block(429, "cc", "请求过于频繁，请稍后再试", "")
+				}
+				if !result.Allowed {
+					c.Header("Retry-After", fmt.Sprint(max(1, int(result.RetryAfter.Seconds()+0.999))))
+					block(429, "cc", "请求过于频繁，请稍后再试", result.Rule)
 					return
 				}
 			}
@@ -144,35 +175,28 @@ func (p *ReverseProxy) Handler() gin.HandlerFunc {
 			case "crawler":
 				action = policy.CrawlerCrawlerAction
 			}
-			p.crawlerService.LogCrawlerDetection(requestID, &p.siteID, ip, c.GetHeader("User-Agent"), c.Request.Method, c.Request.URL.Path, result, action)
-			if action == "block" && result.Type != "human" {
+			enforce := false
+			if result.Type != "human" {
+				enforce = state.enforce("crawler", action, result.Name)
+			}
+			if action == "block" && state.mode == "monitor" {
+				action = "log"
+			}
+			if p.publish != nil {
+				_ = p.publish(events.CrawlerEvent(p.crawlerService.BuildLog(requestID, &p.siteID, ip, c.GetHeader("User-Agent"), c.Request.Method, c.Request.URL.Path, result, action)))
+			}
+			if enforce {
 				block(403, "crawler", "请求被爬虫检测拦截", result.Name)
 				return
 			}
 		}
-		body, err := readRequestBody(c.Writer, c.Request, config.GetConfig().WAF.RequestBodyLimit)
-		if err != nil {
-			status := http.StatusBadRequest
-			var tooLarge *http.MaxBytesError
-			if errors.As(err, &tooLarge) {
-				status = http.StatusRequestEntityTooLarge
-			}
-			c.Set("decision_source", "body_limit")
-			c.Set("decision_reason", "请求体读取失败或超过大小限制")
-			p.record(c, requestID, ip, started, nil, nil, status, nil, nil, "error", "")
-			c.AbortWithStatusJSON(status, gin.H{"message": "请求体读取失败或超过大小限制"})
-			return
-		}
-		var tx *coraza.Transaction
-		weakpassword.Submit(authTicket, body, c.GetHeader("Content-Type"), requestID, ip, p.siteID, started)
 		if !trusted && policy.RuleEngineEnabled {
-			tx, err = p.wafEngine.NewTransactionWithPolicy(policy.WafMode, policy.DisabledRuleIDs, policy.EnabledRuleCategories)
+			tx, err = p.wafEngine.NewTransactionWithPolicy(policy.WafMode, policy.DisabledRuleIDs, policy.EnabledRuleCategories, policy.ScoreThreshold, policy.ParanoiaLevel)
 			if err != nil {
 				log.Printf("site WAF policy invalid: %v", err)
-				c.AbortWithStatus(503)
+				fail(503, "waf_error", "规则策略暂不可用")
 				return
 			}
-			defer tx.Close()
 			c.Set("rule_evaluated", true)
 			tx.ProcessConnection(ip, 0, "", 0)
 			tx.ProcessURI(c.Request.URL.RequestURI(), c.Request.Method, c.Request.Proto)
@@ -182,22 +206,32 @@ func (p *ReverseProxy) Handler() gin.HandlerFunc {
 					tx.AddRequestHeader(name, value)
 				}
 			}
-			interruption := tx.ProcessRequestHeaders()
-			if interruption == nil {
-				if err := tx.AddRequestBody(body); err != nil {
-					c.AbortWithStatus(400)
-					return
-				}
-				interruption = tx.ProcessRequestBody()
-			}
-			if policy.WafMode == "block" && p.wafEngine.BlockingEnabled() && (interruption != nil || tx.GetRiskScore() >= policy.ScoreThreshold) {
-				c.Set("decision_source", "waf")
-				c.Set("decision_reason", "规则引擎直接拒绝或风险评分达到阈值")
-				p.record(c, requestID, ip, started, tx, body, 403, nil, nil, "block", "")
-				p.checkAutoBlock(c.Request.Context(), ip, requestID, policy.AutoBlockConfig())
-				p.renderBlockPage(c, 403, "waf", ip, "请求被 WAF 拦截", p.calculateAttackType(tx), map[string]string{"score": fmt.Sprint(tx.GetRiskScore())})
-				c.Abort()
+			if p.enforceWAF(c, state, policy, tx, tx.ProcessRequestHeaders() != nil, requestID, ip, started, nil) {
 				return
+			}
+		}
+		body, err = readRequestBody(c.Writer, c.Request, config.GetConfig().WAF.RequestBodyLimit)
+		if err != nil {
+			status := http.StatusBadRequest
+			var tooLarge *http.MaxBytesError
+			if errors.As(err, &tooLarge) {
+				status = http.StatusRequestEntityTooLarge
+			}
+			fail(status, "body_limit", "请求体读取失败或超过大小限制")
+			return
+		}
+		weakpassword.Submit(authTicket, body, c.GetHeader("Content-Type"), requestID, ip, p.siteID, started)
+		if tx != nil {
+			interruption, err := tx.InspectRequestBody(body)
+			if err != nil {
+				fail(400, "waf_error", "规则引擎无法处理请求体")
+				return
+			}
+			if p.enforceWAF(c, state, policy, tx, interruption != nil, requestID, ip, started, body) {
+				return
+			}
+			if len(tx.GetMatchedRuleDetails()) > 0 && !state.hasSource("waf") {
+				state.enforce("waf", "log", "规则命中，未执行阻断")
 			}
 		}
 		p.forward(c, requestID, ip, started, tx, body)
@@ -287,40 +321,6 @@ func (p *ReverseProxy) forward(c *gin.Context, id, ip string, started time.Time,
 	p.record(c, id, ip, started, tx, body, status, headers, responseBody, action, targetURL.Host)
 }
 
-func prefix(data []byte) []byte {
-	if len(data) > captureLimit {
-		return data[:captureLimit]
-	}
-	return data
-}
-func (p *ReverseProxy) record(c *gin.Context, id, ip string, started time.Time, tx *coraza.Transaction, body []byte, status int, headers http.Header, responseBody []byte, action, upstream string) {
-	requestHeaders, _ := json.Marshal(c.Request.Header)
-	responseHeaders, _ := json.Marshal(headers)
-	uri := c.Request.URL.RequestURI()
-	score := 0
-	matches := make([]model.RuleMatch, 0)
-	if tx != nil {
-		score = tx.GetRiskScore()
-		for _, m := range tx.GetMatchedRuleDetails() {
-			matches = append(matches, model.RuleMatch{RuleID: m.RuleID, RuleFile: m.RuleFile, RuleMsg: m.RuleMsg, Severity: m.Severity, Score: m.Score, MatchedData: m.MatchedData})
-		}
-	}
-	entry := &model.RequestLog{RequestID: id, SiteID: p.siteID, ClientIP: ip, Method: c.Request.Method, URI: uri,
-		Headers: string(requestHeaders), Body: base64.StdEncoding.EncodeToString(prefix(body)), ResponseCode: status, ResponseHeaders: string(responseHeaders),
-		ResponseBody: base64.StdEncoding.EncodeToString(prefix(responseBody)), RiskScore: score, Action: action, AttackType: p.calculateAttackType(tx), UpstreamAddr: upstream, Duration: int(time.Since(started).Milliseconds()), CreatedAt: started}
-	entry.DecisionSource = c.GetString("decision_source")
-	entry.DecisionReason = c.GetString("decision_reason")
-	entry.RuleEvaluated = c.GetBool("rule_evaluated")
-	if entry.DecisionSource == "" {
-		entry.DecisionSource = "upstream"
-		entry.DecisionReason = "请求已转发至业务上游"
-		if action == "error" {
-			entry.DecisionReason = "业务上游转发失败"
-		}
-	}
-	_ = events.Publish(events.RequestEvent(entry, matches))
-}
-
 func (p *ReverseProxy) calculateAttackType(tx *coraza.Transaction) string {
 	if tx == nil {
 		return ""
@@ -345,34 +345,9 @@ func (p *ReverseProxy) calculateAttackType(tx *coraza.Transaction) string {
 	return result
 }
 
-var attackCounter = redis.NewScript(`
-local now=redis.call('TIME')
-local stamp=now[1]*1000+math.floor(now[2]/1000)
-redis.call('ZREMRANGEBYSCORE',KEYS[1],'-inf',stamp-tonumber(ARGV[1])*1000)
-redis.call('ZADD',KEYS[1],stamp,ARGV[2])
-local count=redis.call('ZCARD',KEYS[1])
-redis.call('EXPIRE',KEYS[1],ARGV[1])
-if count>=tonumber(ARGV[3]) then redis.call('ZREM',KEYS[1],ARGV[2]) end
-return count
-`)
-
 func (p *ReverseProxy) checkAutoBlock(parent context.Context, ip, requestID string, cfg *model.AutoBlockConfig) {
-	if !cfg.Enabled || cfg.Duration <= 0 || cfg.Threshold <= 0 {
-		return
-	}
-	ctx, cancel := context.WithTimeout(parent, time.Second)
-	defer cancel()
-	key := fmt.Sprintf("waf:attacks:%d:%s", p.siteID, ip)
-	count, err := attackCounter.Run(ctx, dao.RDB, []string{key}, cfg.Duration, requestID, cfg.Threshold).Int64()
-	if err != nil {
-		log.Printf("auto-block counter failed: %v", err)
-		return
-	}
-	if count >= int64(cfg.Threshold) {
-		err := blacklist.NewIPBlacklistService().AutoBlock(ip, fmt.Sprintf("站点 %d 触发防护阈值", p.siteID), cfg.BlockHours)
-		if err != nil {
-			log.Printf("auto-block persistence failed: %v", err)
-		}
+	if err := p.autoBlock(parent, p.siteID, ip, requestID, cfg); err != nil {
+		log.Printf("auto-block failed: %v", err)
 	}
 }
 

@@ -2,9 +2,9 @@ package service
 
 import (
 	"fmt"
+	"github.com/fly12323/RWAF/internal/config"
 	"gorm.io/gorm"
 	"time"
-	"github.com/fly12323/RWAF/internal/config"
 
 	"github.com/fly12323/RWAF/internal/dao"
 	"github.com/fly12323/RWAF/internal/model"
@@ -339,6 +339,9 @@ func (s *LogService) GetRequestLogDetail(id uint) (*LogDetailResponse, error) {
 	var totalScore int
 	for _, m := range matches {
 		totalScore += m.Score
+	}
+	if log.ScoreBasis == "crs_anomaly" {
+		totalScore = log.RiskScore
 	}
 
 	return &LogDetailResponse{

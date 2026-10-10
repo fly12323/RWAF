@@ -113,8 +113,8 @@ func (b *WeightedRoundRobinBalancer) RemoveTarget(target *Target) {
 
 // Next 获取下一个目标服务器（加权轮询）
 func (b *WeightedRoundRobinBalancer) Next() *Target {
-	b.mu.RLock()
-	defer b.mu.RUnlock()
+	b.mu.Lock()
+	defer b.mu.Unlock()
 
 	if len(b.targets) == 0 {
 		return nil

@@ -35,7 +35,13 @@ func (s *RuleService) SetCustomRulesDir(dir string) {
 // category: 规则分类筛选
 // severity: 严重级别筛选
 // keyword: 关键词搜索
-func (s *RuleService) GetRuleList(page, pageSize int, category, severity, keyword string) ([]model.Rule, int64, error) {
+func (s *RuleService) GetRuleList(page, pageSize int, category, severity, keyword string, profileFilters ...string) ([]model.Rule, int64, error) {
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 || pageSize > 100 {
+		pageSize = 10
+	}
 	var rules []model.Rule
 	var total int64
 
@@ -52,6 +58,36 @@ func (s *RuleService) GetRuleList(page, pageSize int, category, severity, keywor
 		db = db.Where("rule_id LIKE ? OR description LIKE ?", "%"+keyword+"%", "%"+keyword+"%")
 	}
 
+	// Classify before pagination so filtered totals cover the entire catalogue.
+	if len(profileFilters) > 0 && (profileFilters[0] != "" || (len(profileFilters) > 1 && profileFilters[1] != "")) {
+		if err := db.Order("rule_id ASC").Find(&rules).Error; err != nil {
+			return nil, 0, err
+		}
+		filtered := make([]model.Rule, 0, len(rules))
+		for _, r := range rules {
+			r.Profile = model.DescribeRule(r)
+			if profileFilters[0] != "" && r.Profile.FalsePositiveRisk != profileFilters[0] {
+				continue
+			}
+			if len(profileFilters) > 1 && profileFilters[1] != "" && r.Profile.Scope != profileFilters[1] {
+				continue
+			}
+			filtered = append(filtered, r)
+		}
+		total = int64(len(filtered))
+		if page > len(filtered)/pageSize+1 {
+			return []model.Rule{}, total, nil
+		}
+		start := (page - 1) * pageSize
+		if start >= len(filtered) {
+			return []model.Rule{}, total, nil
+		}
+		end := start + pageSize
+		if end > len(filtered) {
+			end = len(filtered)
+		}
+		return filtered[start:end], total, nil
+	}
 	// 统计总数
 	if err := db.Count(&total).Error; err != nil {
 		return nil, 0, err
@@ -63,6 +99,9 @@ func (s *RuleService) GetRuleList(page, pageSize int, category, severity, keywor
 		return nil, 0, err
 	}
 
+	for i := range rules {
+		rules[i].Profile = model.DescribeRule(rules[i])
+	}
 	return rules, total, nil
 }
 
@@ -72,6 +111,7 @@ func (s *RuleService) GetRuleByID(id uint) (*model.Rule, error) {
 	if err := dao.GetDB().First(&rule, id).Error; err != nil {
 		return nil, err
 	}
+	rule.Profile = model.DescribeRule(rule)
 	return &rule, nil
 }
 
@@ -81,6 +121,7 @@ func (s *RuleService) GetRuleByRuleID(ruleID string) (*model.Rule, error) {
 	if err := dao.GetDB().Where("rule_id = ?", ruleID).First(&rule).Error; err != nil {
 		return nil, err
 	}
+	rule.Profile = model.DescribeRule(rule)
 	return &rule, nil
 }
 
@@ -152,7 +193,9 @@ func (s *RuleService) UpdateRule(id uint, req *UpdateRuleRequest) (*model.Rule, 
 	if err != nil {
 		return nil, err
 	}
-	if !rule.IsCustom { return nil, ErrBuiltinRuleReadOnly }
+	if !rule.IsCustom {
+		return nil, ErrBuiltinRuleReadOnly
+	}
 
 	updates := make(map[string]interface{})
 
@@ -213,8 +256,12 @@ func (s *RuleService) DeleteRule(id uint) error {
 // ToggleRuleStatus 切换规则启用状态
 func (s *RuleService) ToggleRuleStatus(id uint, enabled bool) error {
 	rule, err := s.GetRuleByID(id)
-	if err != nil { return err }
-	if !rule.IsCustom { return ErrBuiltinRuleReadOnly }
+	if err != nil {
+		return err
+	}
+	if !rule.IsCustom {
+		return ErrBuiltinRuleReadOnly
+	}
 	if err := dao.GetDB().Model(&model.Rule{}).Where("id = ?", id).Update("enabled", enabled).Error; err != nil {
 		return err
 	}

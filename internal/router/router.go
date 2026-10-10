@@ -106,6 +106,7 @@ func SetupAPIRouter(r *gin.Engine, proxyManager *proxy.ProxyManager, jwtInstance
 			{
 				rules.GET("", ruleHandler.GetList)
 				rules.GET("/categories", ruleHandler.GetCategories)
+				rules.GET("/presets", ruleHandler.GetPresets)
 				rules.GET("/statistics", ruleHandler.GetStatistics)
 				rules.GET("/:id", ruleHandler.GetDetail)
 				rules.POST("", ruleHandler.Create)
@@ -220,6 +221,12 @@ func SetupAPIRouter(r *gin.Engine, proxyManager *proxy.ProxyManager, jwtInstance
 						"code":    0,
 						"message": "success",
 						"data": gin.H{
+							"protection_mode": func() string {
+								if !policy.Enabled {
+									return "off"
+								}
+								return policy.WafMode
+							}(),
 							"status":       "running",
 							"site_count":   len(proxyManager.GetAllSites()),
 							"waf_mode":     engineMode,

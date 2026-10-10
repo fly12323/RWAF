@@ -1,6 +1,7 @@
 <template>
   <div class="rules-page">
     <p class="catalog-hint">内置规则来自当前规则文件，只能查看内容和分类；目录状态不代表全局策略下实际启用状态；需要调整防护范围时，请前往全局防护。自定义规则可由管理员或操作员维护。</p>
+    <p class="catalog-hint">检测强度依据 CRS PL 标签，误报风险为相对调优需求估计，并非实测误报率。严重级别描述攻击危害，不代表规则准确率。<RouterLink to="/protection?section=rules">选择防护策略预设 →</RouterLink></p>
     <nav class="category-nav" aria-label="规则分类">
       <button type="button" :class="{ active: !filters.category }" :aria-pressed="!filters.category" @click="selectCategory('')">全部分类 <span>{{ statistics.total || 0 }}</span></button>
       <button v-for="cat in categories" :key="cat.category" type="button" :class="{ active: filters.category === cat.category }" :aria-pressed="filters.category === cat.category" @click="selectCategory(cat.category)">{{ cat.category }} <span>{{ cat.count }}</span></button>
@@ -16,6 +17,11 @@
           @keyup.enter="goToPage(1)"
         />
         <button class="btn btn-secondary" @click="resetFilters">重置</button>
+        <select v-model="filters.risk" class="input" aria-label="误报风险筛选" @change="goToPage(1)"><option value="">全部误报风险</option><option v-for="(label, key) in riskLabels" :key="key" :value="key">误报风险：{{ label }}</option></select>
+        <select v-model="filters.scope" class="input" aria-label="检测阶段筛选" @change="goToPage(1)">
+          <option value="">全部检测阶段</option><option value="request">请求检测</option>
+          <option value="response">响应检测（当前未执行）</option><option value="control">引擎辅助</option>
+        </select>
       </div>
       <div class="header-right">
         <button v-if="auth.canWrite" class="btn btn-secondary" @click="reloadRules">
@@ -44,11 +50,11 @@
       </div>
       <div class="stat-item success">
         <span class="stat-value">{{ statistics.enabled || 0 }}</span>
-        <span class="stat-label">已启用</span>
+        <span class="stat-label">目录标记启用</span>
       </div>
       <div class="stat-item danger">
         <span class="stat-value">{{ statistics.disabled || 0 }}</span>
-        <span class="stat-label">已禁用</span>
+        <span class="stat-label">目录标记禁用</span>
       </div>
     </div>
 
@@ -63,7 +69,7 @@
               <th>分类</th>
               <th>严重程度</th>
               <th>描述</th>
-              <th>评分</th>
+              <th>强度 / 误报风险</th>
               <th>状态</th>
               <th>操作</th>
             </tr>
@@ -81,17 +87,15 @@
               </td>
               <td class="cell-desc" :title="rule.description">{{ rule.description || '-' }}</td>
               <td>
-                <span class="score-value" :class="getScoreClass(rule.score)">
-                  {{ rule.is_custom ? (rule.score || 0) : '见规则正文' }}
-                </span>
+                <span>{{ rule.profile?.strength || '待评估' }}</span><small class="rule-source" :title="rule.profile?.risk_reason">{{ riskLabels[rule.profile?.false_positive_risk || 'unknown'] || '待评估' }}{{ rule.profile?.paranoia_level ? ` · PL${rule.profile.paranoia_level}` : '' }}</small>
               </td>
               <td>
                 <span
                   class="toggle-badge"
-                  :class="{ active: rule.enabled }"
+                  :class="{ active: rule.is_custom && rule.enabled, readonly: !rule.is_custom }"
                   @click="rule.is_custom && auth.canWrite && toggleRule(rule)"
                 >
-                  {{ rule.is_custom ? (rule.enabled ? '已启用' : '已禁用') : '内置只读' }}
+                  {{ rule.is_custom ? (rule.enabled ? '已启用' : '已禁用') : rule.profile?.scope === 'response' ? '响应未执行' : '由策略决定' }}
                 </span>
               </td>
               <td class="cell-actions"><div class="action-group">
@@ -201,7 +205,7 @@
 
             <div class="form-row">
               <div class="form-group">
-                <label class="label">评分 (0-100)</label>
+                <label class="label">目录评分（仅备注，不参与拦截）</label>
                 <input
                   v-model.number="form.score"
                   type="number"
@@ -271,12 +275,16 @@
             </div>
             <div class="detail-item">
               <span class="detail-label">评分</span>
-              <span class="detail-value">{{ selectedRule.is_custom ? selectedRule.score : '由规则正文与运行时变量决定' }}</span>
+              <span class="detail-value">由规则正文与运行时变量决定</span>
             </div>
             <div class="detail-item full">
               <span class="detail-label">描述</span>
               <span class="detail-value">{{ selectedRule.description }}</span>
             </div>
+            <div class="detail-item"><span class="detail-label">检测强度</span><span class="detail-value">{{ selectedRule.profile?.strength || '待评估' }} · {{ selectedRule.profile?.paranoia_level ? `PL${selectedRule.profile.paranoia_level}` : '无 PL 标签' }}</span></div>
+            <div class="detail-item"><span class="detail-label">相对误报风险</span><span class="detail-value">{{ riskLabels[selectedRule.profile?.false_positive_risk || 'unknown'] }}</span></div>
+            <div class="detail-item full"><span class="detail-label">风险说明与依据</span><span class="detail-value">{{ selectedRule.profile?.risk_reason }} {{ selectedRule.profile?.basis }}</span></div>
+            <div class="detail-item full"><span class="detail-label">适用场景 / 调优重点</span><span class="detail-value">{{ selectedRule.profile?.scenario }}</span></div>
             <div class="detail-item full">
               <span class="detail-label">规则文件</span>
               <span class="detail-value mono">{{ selectedRule.rule_file || '-' }}</span>
@@ -297,6 +305,9 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { api } from '@/api'
 import { useAuthStore } from '@/stores/auth'
 import type { Rule } from '@/types/api'
+import { RouterLink } from 'vue-router'
+
+const riskLabels: Record<string,string> = { low:'较低', moderate:'中等', high:'较高', very_high:'很高', unknown:'待评估', not_applicable:'引擎辅助，不评级' }
 
 const auth = useAuthStore()
 const rules = ref<Rule[]>([])
@@ -314,7 +325,9 @@ const totalPages = computed(() => Math.ceil(total.value / pageSize.value) || 1)
 
 const filters = reactive({
   keyword: '',
-  category: ''
+  category: '',
+  risk: '',
+  scope: ''
 })
 
 const showModal = ref(false)
@@ -348,7 +361,9 @@ const fetchRules = async () => {
       page: currentPage.value,
       page_size: pageSize.value,
       keyword: filters.keyword || undefined,
-      category: filters.category || undefined
+      category: filters.category || undefined,
+      false_positive_risk: filters.risk || undefined,
+      scope: filters.scope || undefined
     })
     rules.value = result.list || []
     total.value = result.total || 0
@@ -383,6 +398,8 @@ const selectCategory = (category: string) => { filters.category = category; filt
 const resetFilters = () => {
   filters.keyword = ''
   filters.category = ''
+  filters.risk = ''
+  filters.scope = ''
   currentPage.value = 1
   fetchRules()
 }
@@ -501,13 +518,6 @@ const reloadRules = async () => {
   }
 }
 
-const getScoreClass = (score?: number): string => {
-  if (!score) return ''
-  if (score >= 80) return 'high'
-  if (score >= 50) return 'medium'
-  return 'low'
-}
-
 onMounted(() => {
   fetchRules()
   fetchCategories()
@@ -536,6 +546,8 @@ onMounted(() => {
   gap: var(--spacing-sm);
   flex-wrap: wrap;
 }
+.header-left select { width: 180px; }
+.toggle-badge.readonly { cursor:default; padding:4px 8px; white-space:nowrap; background:var(--color-secondary); color:var(--color-text-secondary); }
 
 .search-input {
   width: 240px;

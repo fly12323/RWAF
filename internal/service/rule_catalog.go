@@ -4,15 +4,15 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"github.com/fly12323/RWAF/internal/config"
+	"github.com/fly12323/RWAF/internal/dao"
+	"github.com/fly12323/RWAF/internal/model"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
-	"github.com/fly12323/RWAF/internal/config"
-	"github.com/fly12323/RWAF/internal/dao"
-	"github.com/fly12323/RWAF/internal/model"
 )
 
 var ErrBuiltinRuleReadOnly = errors.New("内置规则只读，不能修改、删除或单独切换状态；防护策略请在全局防护中配置")
@@ -23,6 +23,15 @@ var catalogChain = regexp.MustCompile(`(?:^|,)\s*chain(?:[,"\s]|$)`)
 
 func ruleCategory(file string) string {
 	name := strings.ToUpper(filepath.Base(file))
+	if strings.Contains(name, "934-") {
+		return "Generic Attack"
+	}
+	if strings.Contains(name, "911-") {
+		return "Protocol"
+	}
+	if strings.Contains(name, "905-") || strings.Contains(name, "999-") {
+		return "Exclusion"
+	}
 	for _, pair := range [][2]string{{"942-", "SQL Injection"}, {"941-", "XSS"}, {"930-", "LFI"}, {"931-", "RFI"}, {"932-", "RCE"}, {"933-", "PHP Injection"}, {"934-", "Node.js Injection"}, {"944-", "Java Attack"}, {"943-", "Session Fixation"}, {"913-", "Scanner"}, {"920-", "Protocol"}, {"921-", "Protocol"}, {"922-", "Protocol"}, {"901-", "Initialization"}, {"949-", "Blocking Evaluation"}, {"959-", "Blocking Evaluation"}, {"980-", "Correlation"}, {"900-", "Exclusion"}, {"950-", "Data Leakage"}, {"951-", "Data Leakage"}, {"952-", "Data Leakage"}, {"953-", "Data Leakage"}, {"954-", "Data Leakage"}, {"955-", "Data Leakage"}, {"956-", "Data Leakage"}} {
 		if strings.Contains(name, pair[0]) {
 			return pair[1]

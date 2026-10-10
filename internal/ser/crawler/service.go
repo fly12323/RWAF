@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/fly12323/RWAF/internal/model"
-	"github.com/fly12323/RWAF/pkg/events"
 )
 
 // CrawlerService 爬虫检测服务
@@ -303,10 +302,10 @@ func (s *CrawlerService) detectAbnormalPatterns(uri, method string) bool {
 	return false
 }
 
-// LogCrawlerDetection 记录爬虫检测结果
-func (s *CrawlerService) LogCrawlerDetection(requestID string, siteID *uint, clientIP, userAgent, method, uri string, result *CrawlerResult, action string) {
+// BuildLog creates evidence; publication belongs to the request coordinator.
+func (s *CrawlerService) BuildLog(requestID string, siteID *uint, clientIP, userAgent, method, uri string, result *CrawlerResult, action string) *model.CrawlerLog {
 	if result == nil {
-		return
+		return nil
 	}
 
 	detectionRulesJSON, _ := json.Marshal(result.DetectionRules)
@@ -325,5 +324,5 @@ func (s *CrawlerService) LogCrawlerDetection(requestID string, siteID *uint, cli
 		Action:         action,
 	}
 
-	_ = events.Publish(events.CrawlerEvent(log))
+	return log
 }

@@ -3,7 +3,11 @@
 这些文档用于部署、使用和复现验证，与源代码一起维护；它们不参与服务启动。
 
 - [HTTPS、域名接入与日志可靠性](https-and-logging.md)
+- [v1.1.1 更新说明](../CHANGELOG.md)
 - [请求日志采集说明](request-logs.md)
+- [防护链路、评分与模块边界](protection-pipeline.md)
+- [规则分类、误报风险与策略预设](rule-classification.md)
+- [PL 等级误封与漏检样本评估（2026-10-10）](benchmarks/2026-10-10/accuracy.md)
 - [弱口令检测与运行监控](detection-and-monitoring.md)
 - [本地演示流量](demo-traffic.md)
 - [最终验收报告](benchmarks/2026-10-07/REPORT.md)

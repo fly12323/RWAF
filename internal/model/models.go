@@ -57,18 +57,19 @@ func (Site) TableName() string {
 // Rule 规则模型
 // 存储规则信息
 type Rule struct {
-	ID          uint      `gorm:"primaryKey;autoIncrement" json:"id"`                          // 主键ID
-	RuleID      string    `gorm:"type:varchar(50);uniqueIndex;not null" json:"rule_id"`        // 规则ID
-	RuleFile    string    `gorm:"type:varchar(255);not null" json:"rule_file"`                 // 规则文件路径
-	RuleContent string    `gorm:"type:text" json:"rule_content"`                               // 规则内容
-	Category    string    `gorm:"type:varchar(50)" json:"category"`                            // 规则分类
-	Severity    string    `gorm:"type:varchar(20);not null;default:'WARNING'" json:"severity"` // 严重级别
-	Score       int       `gorm:"not null;default:5" json:"score"`                             // 风险分数
-	Description string    `gorm:"type:varchar(500)" json:"description"`                        // 规则描述
-	Enabled     bool      `gorm:"not null;default:true" json:"enabled"`                        // 是否启用
-	IsCustom    bool      `gorm:"not null;default:false" json:"is_custom"`                     // 是否自定义
-	CreatedAt   time.Time `gorm:"autoCreateTime" json:"created_at"`                            // 创建时间
-	UpdatedAt   time.Time `gorm:"autoUpdateTime" json:"updated_at"`                            // 更新时间
+	Profile     *RuleProfile `gorm:"-" json:"profile,omitempty"`
+	ID          uint         `gorm:"primaryKey;autoIncrement" json:"id"`                          // 主键ID
+	RuleID      string       `gorm:"type:varchar(50);uniqueIndex;not null" json:"rule_id"`        // 规则ID
+	RuleFile    string       `gorm:"type:varchar(255);not null" json:"rule_file"`                 // 规则文件路径
+	RuleContent string       `gorm:"type:text" json:"rule_content"`                               // 规则内容
+	Category    string       `gorm:"type:varchar(50)" json:"category"`                            // 规则分类
+	Severity    string       `gorm:"type:varchar(20);not null;default:'WARNING'" json:"severity"` // 严重级别
+	Score       int          `gorm:"not null;default:5" json:"score"`                             // 风险分数
+	Description string       `gorm:"type:varchar(500)" json:"description"`                        // 规则描述
+	Enabled     bool         `gorm:"not null;default:true" json:"enabled"`                        // 是否启用
+	IsCustom    bool         `gorm:"not null;default:false" json:"is_custom"`                     // 是否自定义
+	CreatedAt   time.Time    `gorm:"autoCreateTime" json:"created_at"`                            // 创建时间
+	UpdatedAt   time.Time    `gorm:"autoUpdateTime" json:"updated_at"`                            // 更新时间
 }
 
 // TableName 指定表名
@@ -111,27 +112,31 @@ func (Whitelist) TableName() string {
 
 // RequestLog 请求日志模型
 type RequestLog struct {
-	ID              uint      `json:"id" gorm:"primaryKey"`
-	RequestID       string    `json:"request_id" gorm:"size:64;index"`
-	SiteID          uint      `json:"site_id"`
-	ClientIP        string    `json:"client_ip" gorm:"size:50"`
-	Method          string    `json:"method" gorm:"size:10"`
-	URI             string    `json:"uri" gorm:"type:text"`
-	Headers         string    `json:"headers" gorm:"type:text"`
-	Body            string    `json:"body" gorm:"type:text"`
-	ResponseCode    int       `json:"response_code"`
-	ResponseHeaders string    `json:"response_headers" gorm:"type:text"`
-	ResponseBody    string    `json:"response_body" gorm:"type:text"`
-	RiskScore       int       `json:"risk_score"`
-	Action          string    `json:"action" gorm:"size:20"`
-	AttackType      string    `json:"attack_type" gorm:"size:50"` // 主要攻击类型
-	DecisionSource  string    `json:"decision_source" gorm:"size:40"`
-	DecisionReason  string    `json:"decision_reason" gorm:"type:text"`
-	RuleEvaluated   bool      `json:"rule_evaluated"`
-	SourceInferred  bool      `json:"source_inferred" gorm:"-"`
-	UpstreamAddr    string    `json:"upstream_addr" gorm:"size:100"`
-	Duration        int       `json:"duration"`
-	CreatedAt       time.Time `json:"created_at" gorm:"index"`
+	ID              uint        `json:"id" gorm:"primaryKey"`
+	RequestID       string      `json:"request_id" gorm:"size:64;index"`
+	SiteID          uint        `json:"site_id"`
+	ClientIP        string      `json:"client_ip" gorm:"size:50"`
+	Method          string      `json:"method" gorm:"size:10"`
+	URI             string      `json:"uri" gorm:"type:text"`
+	Headers         string      `json:"headers" gorm:"type:text"`
+	Body            string      `json:"body" gorm:"type:text"`
+	ResponseCode    int         `json:"response_code"`
+	ResponseHeaders string      `json:"response_headers" gorm:"type:text"`
+	ResponseBody    string      `json:"response_body" gorm:"type:text"`
+	RiskScore       int         `json:"risk_score"`
+	Action          string      `json:"action" gorm:"size:20"`
+	AttackType      string      `json:"attack_type" gorm:"size:50"` // 主要攻击类型
+	DecisionSource  string      `json:"decision_source" gorm:"size:40"`
+	DecisionReason  string      `json:"decision_reason" gorm:"type:text"`
+	RuleEvaluated   bool        `json:"rule_evaluated"`
+	ProtectionMode  string      `json:"protection_mode" gorm:"size:20"`
+	PolicyVersion   string      `json:"policy_version" gorm:"size:64"`
+	ScoreBasis      string      `json:"score_basis" gorm:"size:30"`
+	Detections      []Detection `json:"detections" gorm:"serializer:json;type:jsonb"`
+	SourceInferred  bool        `json:"source_inferred" gorm:"-"`
+	UpstreamAddr    string      `json:"upstream_addr" gorm:"size:100"`
+	Duration        int         `json:"duration"`
+	CreatedAt       time.Time   `json:"created_at" gorm:"index"`
 }
 
 // TableName 指定表名

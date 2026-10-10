@@ -83,7 +83,8 @@ export const api = {
   updateProtectionConfig: (config: ProtectionConfig) => put<ProtectionConfig>('/api/v1/waf/protection', config),
 
   // Rules
-  rules: (params: { page?: number; page_size?: number; keyword?: string; category?: string } = {}) =>
+  rulePresets: () => get<Array<{ id: string; name: string; paranoia_level: number; score_threshold: number; description: string }>>('/api/v1/rules/presets'),
+  rules: (params: { page?: number; page_size?: number; keyword?: string; category?: string; false_positive_risk?: string; scope?: string } = {}) =>
     get<PageData<Rule>>(`/api/v1/rules${q(params)}`),
   createRule: (payload: Record<string, unknown>) => post<Record<string, unknown>>('/api/v1/rules', payload),
   updateRule: (id: number, payload: Record<string, unknown>) => put<Record<string, unknown>>(`/api/v1/rules/${id}`, payload),

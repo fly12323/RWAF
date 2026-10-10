@@ -1,12 +1,12 @@
 package handler
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/fly12323/RWAF/internal/middleware"
 	"github.com/fly12323/RWAF/internal/model"
 	"github.com/fly12323/RWAF/internal/ser/protection"
 	"github.com/fly12323/RWAF/pkg/coraza"
 	"github.com/fly12323/RWAF/pkg/response"
+	"github.com/gin-gonic/gin"
 )
 
 func GetProtectionConfig(c *gin.Context) {
@@ -32,7 +32,7 @@ func UpdateProtectionConfig(c *gin.Context) {
 		response.Fail(c, 503, "规则引擎尚未初始化")
 		return
 	}
-	if _, err := engine.PolicyEngine(cfg.WafMode, cfg.DisabledRuleIDs, cfg.EnabledRuleCategories); err != nil {
+	if _, err := engine.PolicyEngine(cfg.WafMode, cfg.DisabledRuleIDs, cfg.EnabledRuleCategories, cfg.ScoreThreshold, cfg.ParanoiaLevel); err != nil {
 		response.Fail(c, 400, "规则策略无效: "+err.Error())
 		return
 	}

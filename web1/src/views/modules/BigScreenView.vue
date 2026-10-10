@@ -37,9 +37,9 @@
               <span class="value">{{ wafStatus.site_count || 0 }}</span>
             </div>
             <div class="status-item">
-              <span class="label">WAF模式</span>
-              <span class="value" :class="wafStatus.waf_mode === 'On' ? 'success' : ''">
-                {{ wafStatus.waf_mode === 'On' ? '防护中' : wafStatus.waf_mode === 'DetectionOnly' ? '监控模式' : '关闭' }}
+              <span class="label">全局模式</span>
+              <span class="value" :class="(wafStatus.protection_mode ? wafStatus.protection_mode === 'block' : wafStatus.waf_mode === 'On') ? 'success' : ''">
+                {{ wafStatus.protection_mode ? protectionModeLabel(wafStatus.protection_mode) : wafStatus.waf_mode === 'On' ? '防护中' : wafStatus.waf_mode === 'DetectionOnly' ? '观察模式' : '关闭' }}
               </span>
             </div>
             <div class="status-item highlight">
@@ -184,6 +184,7 @@ import { useTheme } from '@/stores/theme'
 const { theme } = useTheme()
 const chartColor = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim()
 import { api } from '@/api'
+import { protectionModeLabel } from '@/utils/request'
 import type { WAFStatus, LogTrend, AttackIP, RequestLog, AttackGeo } from '@/types/api'
 
 const currentTime = ref('')

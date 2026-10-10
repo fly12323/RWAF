@@ -173,7 +173,11 @@
           </div>
 
           <div class="detail-section">
-            <h4>处理依据</h4><p>{{ decisionLabel(detailData.log) }} · {{ detailData.log.decision_reason || '未记录具体原因' }}</p><p v-if="!detailData.log.rule_evaluated">{{ detailData.log.source_inferred ? '历史日志缺少完整规则执行信息，处理来源按已记录信息推断。' : '此请求未经过规则评分，拦截可以由限流、名单等策略决定。' }}</p></div><div class="detail-section"><h4>请求包</h4>
+            <h4>处理依据</h4><p>{{ decisionLabel(detailData.log) }} · {{ detailData.log.decision_reason || '未记录具体原因' }}</p>
+			<p>执行模式：{{ protectionModeLabel(detailData.log.protection_mode) }} · 评分口径：{{ scoreBasisLabel(detailData.log) }}</p>
+			<p>策略配置版本：{{ detailData.log.policy_version || '历史日志未记录' }}</p>
+			<ul v-if="detailData.log.detections?.length"><li v-for="(d, index) in detailData.log.detections" :key="index">{{ decisionLabels[d.source] || d.source }} · {{ detectionActionLabel(d.action) }} · {{ d.reason }}</li></ul>
+			<p v-if="!detailData.log.rule_evaluated">{{ detailData.log.source_inferred ? '历史日志缺少完整规则执行信息，处理来源按已记录信息推断。' : '此请求未经过规则评分，拦截可以由限流、名单等策略决定。' }}</p></div><div class="detail-section"><h4>请求包</h4>
             <pre class="http-packet">{{ formatRequestPacket() }}</pre>
           </div>
 
@@ -204,7 +208,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { api } from '@/api'
-import { decisionLabel, scoreLabel, decodeBody } from '@/utils/request'
+import { decisionLabel, scoreLabel, decodeBody, protectionModeLabel, scoreBasisLabel, decisionLabels, detectionActionLabel } from '@/utils/request'
 import type { RequestLog } from '@/types/api'
 
 const logs = ref<RequestLog[]>([])

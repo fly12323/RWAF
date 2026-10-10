@@ -3,11 +3,11 @@ package protection
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/fly12323/RWAF/internal/dao"
+	"github.com/fly12323/RWAF/internal/model"
 	"strconv"
 	"sync"
 	"time"
-	"github.com/fly12323/RWAF/internal/dao"
-	"github.com/fly12323/RWAF/internal/model"
 )
 
 var cacheMu sync.Mutex
@@ -60,6 +60,12 @@ func ValidateAutoBlock(c *model.AutoBlockConfig) error {
 	return nil
 }
 func Validate(c *model.ProtectionConfig) error {
+	if c.ParanoiaLevel == 0 {
+		c.ParanoiaLevel = 1
+	} // Existing clients default to the previous PL1 behavior.
+	if c.ParanoiaLevel < 1 || c.ParanoiaLevel > 4 {
+		return fmt.Errorf("规则检测级别必须在 PL1 到 PL4 之间")
+	}
 	if (c.WafMode != "block" && c.WafMode != "monitor") || c.ScoreThreshold <= 0 {
 		return fmt.Errorf("无效的防护模式或评分阈值")
 	}
@@ -86,6 +92,9 @@ func Validate(c *model.ProtectionConfig) error {
 		n, err := strconv.Atoi(id)
 		if err != nil || n <= 0 {
 			return fmt.Errorf("无效规则 ID: %s", id)
+		}
+		if n == 1000000001 {
+			return fmt.Errorf("不能禁用系统策略初始化规则")
 		}
 	}
 	if c.EnabledRuleCategories == nil {

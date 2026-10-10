@@ -41,7 +41,7 @@ func (h *RuleHandler) GetList(c *gin.Context) {
 		pageSize = 10
 	}
 
-	rules, total, err := h.ruleService.GetRuleList(page, pageSize, category, severity, keyword)
+	rules, total, err := h.ruleService.GetRuleList(page, pageSize, category, severity, keyword, c.Query("false_positive_risk"), c.Query("scope"))
 	if err != nil {
 		response.Fail(c, 500, "获取规则列表失败: "+err.Error())
 		return
@@ -179,6 +179,9 @@ func (h *RuleHandler) GetCategories(c *gin.Context) {
 
 	response.Success(c, categories)
 }
+
+// GetPresets exposes shared, read-only rule policy templates.
+func (h *RuleHandler) GetPresets(c *gin.Context) { response.Success(c, model.RulePresets()) }
 
 // GetStatistics 获取规则统计
 // GET /api/v1/rules/statistics

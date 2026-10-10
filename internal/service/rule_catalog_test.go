@@ -1,11 +1,11 @@
 package service
 
 import (
+	"github.com/fly12323/RWAF/internal/model"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
-	"github.com/fly12323/RWAF/internal/model"
 )
 
 func TestBuiltinCatalogPreservesChainsAndMetadata(t *testing.T) {
@@ -27,6 +27,8 @@ func TestRepositoryBuiltinCatalog(t *testing.T) {
 		t.Fatal("CRS files missing")
 	}
 	ids := map[string]bool{}
+	risks := map[string]int{}
+	scopes := map[string]int{}
 	for _, file := range files {
 		data, err := os.ReadFile(file)
 		if err != nil {
@@ -41,11 +43,21 @@ func TestRepositoryBuiltinCatalog(t *testing.T) {
 				t.Fatalf("duplicate %s", rule.RuleID)
 			}
 			ids[rule.RuleID] = true
+			profile := model.DescribeRule(rule)
+			risks[profile.FalsePositiveRisk]++
+			scopes[profile.Scope]++
+			if rule.RuleID == "942120" && (profile.ParanoiaLevel != 2 || profile.FalsePositiveRisk != "moderate") {
+				t.Fatal("lost CRS PL2 metadata")
+			}
+			if strings.Contains(file, "934-") && rule.Category != "Generic Attack" {
+				t.Fatal("generic attacks misclassified as Node.js only")
+			}
 		}
 	}
 	if !ids["942100"] || !ids["941100"] || len(ids) < 500 {
 		t.Fatalf("incomplete catalogue: %d", len(ids))
 	}
+	t.Logf("catalogue rules=%d risks=%v scopes=%v", len(ids), risks, scopes)
 }
 func TestLegacyDecisionDescriptions(t *testing.T) {
 	rate := model.RequestLog{Action: "block", ResponseCode: 429}

@@ -1,0 +1,1886 @@
+{
+  "generated_at": "2026-10-10T06:11:49Z",
+  "corpus_sha256": "161d7fd47aef53ed739d5e9b088689ee01ffa46e04dbc0efd7ebd37267116e76",
+  "rules_sha256": "2173632276ec6cf1e0076064caa009f8e83789c9f89c36e18a00facccee0e8da",
+  "regression_skipped": {
+    "multi-stage": 2,
+    "non-positive": 586,
+    "special-input": 2,
+    "unsupported-http-version": 3,
+    "unsupported-uri": 1
+  },
+  "results": [
+    {
+      "pl": 1,
+      "threshold": 5,
+      "groups": {
+        "attack-probe": {
+          "n": 184,
+          "blocked": 140,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/lfi": {
+          "n": 40,
+          "blocked": 30,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/rce": {
+          "n": 52,
+          "blocked": 23,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/sqli": {
+          "n": 40,
+          "blocked": 35,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/xss": {
+          "n": 52,
+          "blocked": 52,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-basic": {
+          "n": 160,
+          "blocked": 6,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-basic/ordinary": {
+          "n": 160,
+          "blocked": 6,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex": {
+          "n": 124,
+          "blocked": 19,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/code-editor": {
+          "n": 40,
+          "blocked": 10,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/rich-text": {
+          "n": 32,
+          "blocked": 8,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/search-symbols": {
+          "n": 52,
+          "blocked": 1,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe": {
+          "n": 52,
+          "blocked": 34,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/nosqli-text": {
+          "n": 20,
+          "blocked": 20,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/open-redirect": {
+          "n": 12,
+          "blocked": 0,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/ssrf": {
+          "n": 20,
+          "blocked": 14,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "crs-positive": {
+          "n": 3225,
+          "blocked": 2268,
+          "errors": 0,
+          "expected_matched": 1736
+        },
+        "crs-positive/REQUEST-930-APPLICATION-ATTACK-LFI": {
+          "n": 42,
+          "blocked": 21,
+          "errors": 0,
+          "expected_matched": 17
+        },
+        "crs-positive/REQUEST-931-APPLICATION-ATTACK-RFI": {
+          "n": 35,
+          "blocked": 14,
+          "errors": 0,
+          "expected_matched": 12
+        },
+        "crs-positive/REQUEST-932-APPLICATION-ATTACK-RCE": {
+          "n": 608,
+          "blocked": 419,
+          "errors": 0,
+          "expected_matched": 338
+        },
+        "crs-positive/REQUEST-933-APPLICATION-ATTACK-PHP": {
+          "n": 220,
+          "blocked": 209,
+          "errors": 0,
+          "expected_matched": 190
+        },
+        "crs-positive/REQUEST-934-APPLICATION-ATTACK-GENERIC": {
+          "n": 199,
+          "blocked": 132,
+          "errors": 0,
+          "expected_matched": 102
+        },
+        "crs-positive/REQUEST-941-APPLICATION-ATTACK-XSS": {
+          "n": 165,
+          "blocked": 158,
+          "errors": 0,
+          "expected_matched": 148
+        },
+        "crs-positive/REQUEST-942-APPLICATION-ATTACK-SQLI": {
+          "n": 782,
+          "blocked": 420,
+          "errors": 0,
+          "expected_matched": 298
+        },
+        "crs-positive/REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION": {
+          "n": 39,
+          "blocked": 39,
+          "errors": 0,
+          "expected_matched": 39
+        },
+        "crs-positive/REQUEST-944-APPLICATION-ATTACK-JAVA": {
+          "n": 1135,
+          "blocked": 856,
+          "errors": 0,
+          "expected_matched": 592
+        }
+      }
+    },
+    {
+      "pl": 2,
+      "threshold": 5,
+      "groups": {
+        "attack-probe": {
+          "n": 184,
+          "blocked": 150,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/lfi": {
+          "n": 40,
+          "blocked": 30,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/rce": {
+          "n": 52,
+          "blocked": 30,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/sqli": {
+          "n": 40,
+          "blocked": 38,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/xss": {
+          "n": 52,
+          "blocked": 52,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-basic": {
+          "n": 160,
+          "blocked": 10,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-basic/ordinary": {
+          "n": 160,
+          "blocked": 10,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex": {
+          "n": 124,
+          "blocked": 74,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/code-editor": {
+          "n": 40,
+          "blocked": 25,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/rich-text": {
+          "n": 32,
+          "blocked": 25,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/search-symbols": {
+          "n": 52,
+          "blocked": 24,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe": {
+          "n": 52,
+          "blocked": 40,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/nosqli-text": {
+          "n": 20,
+          "blocked": 20,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/open-redirect": {
+          "n": 12,
+          "blocked": 6,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/ssrf": {
+          "n": 20,
+          "blocked": 14,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "crs-positive": {
+          "n": 3225,
+          "blocked": 2918,
+          "errors": 0,
+          "expected_matched": 2685
+        },
+        "crs-positive/REQUEST-930-APPLICATION-ATTACK-LFI": {
+          "n": 42,
+          "blocked": 29,
+          "errors": 0,
+          "expected_matched": 17
+        },
+        "crs-positive/REQUEST-931-APPLICATION-ATTACK-RFI": {
+          "n": 35,
+          "blocked": 35,
+          "errors": 0,
+          "expected_matched": 34
+        },
+        "crs-positive/REQUEST-932-APPLICATION-ATTACK-RCE": {
+          "n": 608,
+          "blocked": 587,
+          "errors": 0,
+          "expected_matched": 527
+        },
+        "crs-positive/REQUEST-933-APPLICATION-ATTACK-PHP": {
+          "n": 220,
+          "blocked": 218,
+          "errors": 0,
+          "expected_matched": 199
+        },
+        "crs-positive/REQUEST-934-APPLICATION-ATTACK-GENERIC": {
+          "n": 199,
+          "blocked": 199,
+          "errors": 0,
+          "expected_matched": 199
+        },
+        "crs-positive/REQUEST-941-APPLICATION-ATTACK-XSS": {
+          "n": 165,
+          "blocked": 165,
+          "errors": 0,
+          "expected_matched": 163
+        },
+        "crs-positive/REQUEST-942-APPLICATION-ATTACK-SQLI": {
+          "n": 782,
+          "blocked": 760,
+          "errors": 0,
+          "expected_matched": 738
+        },
+        "crs-positive/REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION": {
+          "n": 39,
+          "blocked": 39,
+          "errors": 0,
+          "expected_matched": 39
+        },
+        "crs-positive/REQUEST-944-APPLICATION-ATTACK-JAVA": {
+          "n": 1135,
+          "blocked": 886,
+          "errors": 0,
+          "expected_matched": 769
+        }
+      }
+    },
+    {
+      "pl": 3,
+      "threshold": 5,
+      "groups": {
+        "attack-probe": {
+          "n": 184,
+          "blocked": 162,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/lfi": {
+          "n": 40,
+          "blocked": 30,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/rce": {
+          "n": 52,
+          "blocked": 40,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/sqli": {
+          "n": 40,
+          "blocked": 40,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/xss": {
+          "n": 52,
+          "blocked": 52,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-basic": {
+          "n": 160,
+          "blocked": 35,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-basic/ordinary": {
+          "n": 160,
+          "blocked": 35,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex": {
+          "n": 124,
+          "blocked": 86,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/code-editor": {
+          "n": 40,
+          "blocked": 32,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/rich-text": {
+          "n": 32,
+          "blocked": 25,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/search-symbols": {
+          "n": 52,
+          "blocked": 29,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe": {
+          "n": 52,
+          "blocked": 40,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/nosqli-text": {
+          "n": 20,
+          "blocked": 20,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/open-redirect": {
+          "n": 12,
+          "blocked": 6,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/ssrf": {
+          "n": 20,
+          "blocked": 14,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "crs-positive": {
+          "n": 3225,
+          "blocked": 3200,
+          "errors": 0,
+          "expected_matched": 3124
+        },
+        "crs-positive/REQUEST-930-APPLICATION-ATTACK-LFI": {
+          "n": 42,
+          "blocked": 29,
+          "errors": 0,
+          "expected_matched": 17
+        },
+        "crs-positive/REQUEST-931-APPLICATION-ATTACK-RFI": {
+          "n": 35,
+          "blocked": 35,
+          "errors": 0,
+          "expected_matched": 34
+        },
+        "crs-positive/REQUEST-932-APPLICATION-ATTACK-RCE": {
+          "n": 608,
+          "blocked": 603,
+          "errors": 0,
+          "expected_matched": 579
+        },
+        "crs-positive/REQUEST-933-APPLICATION-ATTACK-PHP": {
+          "n": 220,
+          "blocked": 220,
+          "errors": 0,
+          "expected_matched": 220
+        },
+        "crs-positive/REQUEST-934-APPLICATION-ATTACK-GENERIC": {
+          "n": 199,
+          "blocked": 199,
+          "errors": 0,
+          "expected_matched": 199
+        },
+        "crs-positive/REQUEST-941-APPLICATION-ATTACK-XSS": {
+          "n": 165,
+          "blocked": 165,
+          "errors": 0,
+          "expected_matched": 163
+        },
+        "crs-positive/REQUEST-942-APPLICATION-ATTACK-SQLI": {
+          "n": 782,
+          "blocked": 778,
+          "errors": 0,
+          "expected_matched": 774
+        },
+        "crs-positive/REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION": {
+          "n": 39,
+          "blocked": 39,
+          "errors": 0,
+          "expected_matched": 39
+        },
+        "crs-positive/REQUEST-944-APPLICATION-ATTACK-JAVA": {
+          "n": 1135,
+          "blocked": 1132,
+          "errors": 0,
+          "expected_matched": 1099
+        }
+      }
+    },
+    {
+      "pl": 4,
+      "threshold": 5,
+      "groups": {
+        "attack-probe": {
+          "n": 184,
+          "blocked": 172,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/lfi": {
+          "n": 40,
+          "blocked": 40,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/rce": {
+          "n": 52,
+          "blocked": 40,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/sqli": {
+          "n": 40,
+          "blocked": 40,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/xss": {
+          "n": 52,
+          "blocked": 52,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-basic": {
+          "n": 160,
+          "blocked": 108,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-basic/ordinary": {
+          "n": 160,
+          "blocked": 108,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex": {
+          "n": 124,
+          "blocked": 106,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/code-editor": {
+          "n": 40,
+          "blocked": 35,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/rich-text": {
+          "n": 32,
+          "blocked": 31,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/search-symbols": {
+          "n": 52,
+          "blocked": 40,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe": {
+          "n": 52,
+          "blocked": 44,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/nosqli-text": {
+          "n": 20,
+          "blocked": 20,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/open-redirect": {
+          "n": 12,
+          "blocked": 9,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/ssrf": {
+          "n": 20,
+          "blocked": 15,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "crs-positive": {
+          "n": 3225,
+          "blocked": 3213,
+          "errors": 0,
+          "expected_matched": 3153
+        },
+        "crs-positive/REQUEST-930-APPLICATION-ATTACK-LFI": {
+          "n": 42,
+          "blocked": 34,
+          "errors": 0,
+          "expected_matched": 17
+        },
+        "crs-positive/REQUEST-931-APPLICATION-ATTACK-RFI": {
+          "n": 35,
+          "blocked": 35,
+          "errors": 0,
+          "expected_matched": 34
+        },
+        "crs-positive/REQUEST-932-APPLICATION-ATTACK-RCE": {
+          "n": 608,
+          "blocked": 606,
+          "errors": 0,
+          "expected_matched": 579
+        },
+        "crs-positive/REQUEST-933-APPLICATION-ATTACK-PHP": {
+          "n": 220,
+          "blocked": 220,
+          "errors": 0,
+          "expected_matched": 220
+        },
+        "crs-positive/REQUEST-934-APPLICATION-ATTACK-GENERIC": {
+          "n": 199,
+          "blocked": 199,
+          "errors": 0,
+          "expected_matched": 199
+        },
+        "crs-positive/REQUEST-941-APPLICATION-ATTACK-XSS": {
+          "n": 165,
+          "blocked": 165,
+          "errors": 0,
+          "expected_matched": 163
+        },
+        "crs-positive/REQUEST-942-APPLICATION-ATTACK-SQLI": {
+          "n": 782,
+          "blocked": 780,
+          "errors": 0,
+          "expected_matched": 782
+        },
+        "crs-positive/REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION": {
+          "n": 39,
+          "blocked": 39,
+          "errors": 0,
+          "expected_matched": 39
+        },
+        "crs-positive/REQUEST-944-APPLICATION-ATTACK-JAVA": {
+          "n": 1135,
+          "blocked": 1135,
+          "errors": 0,
+          "expected_matched": 1120
+        }
+      }
+    },
+    {
+      "pl": 1,
+      "threshold": 10,
+      "groups": {
+        "attack-probe": {
+          "n": 184,
+          "blocked": 115,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/lfi": {
+          "n": 40,
+          "blocked": 30,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/rce": {
+          "n": 52,
+          "blocked": 15,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/sqli": {
+          "n": 40,
+          "blocked": 18,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/xss": {
+          "n": 52,
+          "blocked": 52,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-basic": {
+          "n": 160,
+          "blocked": 0,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-basic/ordinary": {
+          "n": 160,
+          "blocked": 0,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex": {
+          "n": 124,
+          "blocked": 2,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/code-editor": {
+          "n": 40,
+          "blocked": 2,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/rich-text": {
+          "n": 32,
+          "blocked": 0,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/search-symbols": {
+          "n": 52,
+          "blocked": 0,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe": {
+          "n": 52,
+          "blocked": 13,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/nosqli-text": {
+          "n": 20,
+          "blocked": 5,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/open-redirect": {
+          "n": 12,
+          "blocked": 0,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/ssrf": {
+          "n": 20,
+          "blocked": 8,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "crs-positive": {
+          "n": 3225,
+          "blocked": 1171,
+          "errors": 0,
+          "expected_matched": 1736
+        },
+        "crs-positive/REQUEST-930-APPLICATION-ATTACK-LFI": {
+          "n": 42,
+          "blocked": 13,
+          "errors": 0,
+          "expected_matched": 17
+        },
+        "crs-positive/REQUEST-931-APPLICATION-ATTACK-RFI": {
+          "n": 35,
+          "blocked": 1,
+          "errors": 0,
+          "expected_matched": 12
+        },
+        "crs-positive/REQUEST-932-APPLICATION-ATTACK-RCE": {
+          "n": 608,
+          "blocked": 125,
+          "errors": 0,
+          "expected_matched": 338
+        },
+        "crs-positive/REQUEST-933-APPLICATION-ATTACK-PHP": {
+          "n": 220,
+          "blocked": 39,
+          "errors": 0,
+          "expected_matched": 190
+        },
+        "crs-positive/REQUEST-934-APPLICATION-ATTACK-GENERIC": {
+          "n": 199,
+          "blocked": 55,
+          "errors": 0,
+          "expected_matched": 102
+        },
+        "crs-positive/REQUEST-941-APPLICATION-ATTACK-XSS": {
+          "n": 165,
+          "blocked": 96,
+          "errors": 0,
+          "expected_matched": 148
+        },
+        "crs-positive/REQUEST-942-APPLICATION-ATTACK-SQLI": {
+          "n": 782,
+          "blocked": 186,
+          "errors": 0,
+          "expected_matched": 298
+        },
+        "crs-positive/REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION": {
+          "n": 39,
+          "blocked": 1,
+          "errors": 0,
+          "expected_matched": 39
+        },
+        "crs-positive/REQUEST-944-APPLICATION-ATTACK-JAVA": {
+          "n": 1135,
+          "blocked": 655,
+          "errors": 0,
+          "expected_matched": 592
+        }
+      }
+    },
+    {
+      "pl": 2,
+      "threshold": 10,
+      "groups": {
+        "attack-probe": {
+          "n": 184,
+          "blocked": 144,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/lfi": {
+          "n": 40,
+          "blocked": 30,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/rce": {
+          "n": 52,
+          "blocked": 25,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/sqli": {
+          "n": 40,
+          "blocked": 37,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/xss": {
+          "n": 52,
+          "blocked": 52,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-basic": {
+          "n": 160,
+          "blocked": 2,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-basic/ordinary": {
+          "n": 160,
+          "blocked": 2,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex": {
+          "n": 124,
+          "blocked": 44,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/code-editor": {
+          "n": 40,
+          "blocked": 14,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/rich-text": {
+          "n": 32,
+          "blocked": 25,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/search-symbols": {
+          "n": 52,
+          "blocked": 5,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe": {
+          "n": 52,
+          "blocked": 24,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/nosqli-text": {
+          "n": 20,
+          "blocked": 14,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/open-redirect": {
+          "n": 12,
+          "blocked": 0,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/ssrf": {
+          "n": 20,
+          "blocked": 10,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "crs-positive": {
+          "n": 3225,
+          "blocked": 2131,
+          "errors": 0,
+          "expected_matched": 2685
+        },
+        "crs-positive/REQUEST-930-APPLICATION-ATTACK-LFI": {
+          "n": 42,
+          "blocked": 13,
+          "errors": 0,
+          "expected_matched": 17
+        },
+        "crs-positive/REQUEST-931-APPLICATION-ATTACK-RFI": {
+          "n": 35,
+          "blocked": 9,
+          "errors": 0,
+          "expected_matched": 34
+        },
+        "crs-positive/REQUEST-932-APPLICATION-ATTACK-RCE": {
+          "n": 608,
+          "blocked": 395,
+          "errors": 0,
+          "expected_matched": 527
+        },
+        "crs-positive/REQUEST-933-APPLICATION-ATTACK-PHP": {
+          "n": 220,
+          "blocked": 115,
+          "errors": 0,
+          "expected_matched": 199
+        },
+        "crs-positive/REQUEST-934-APPLICATION-ATTACK-GENERIC": {
+          "n": 199,
+          "blocked": 113,
+          "errors": 0,
+          "expected_matched": 199
+        },
+        "crs-positive/REQUEST-941-APPLICATION-ATTACK-XSS": {
+          "n": 165,
+          "blocked": 123,
+          "errors": 0,
+          "expected_matched": 163
+        },
+        "crs-positive/REQUEST-942-APPLICATION-ATTACK-SQLI": {
+          "n": 782,
+          "blocked": 531,
+          "errors": 0,
+          "expected_matched": 738
+        },
+        "crs-positive/REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION": {
+          "n": 39,
+          "blocked": 2,
+          "errors": 0,
+          "expected_matched": 39
+        },
+        "crs-positive/REQUEST-944-APPLICATION-ATTACK-JAVA": {
+          "n": 1135,
+          "blocked": 830,
+          "errors": 0,
+          "expected_matched": 769
+        }
+      }
+    },
+    {
+      "pl": 3,
+      "threshold": 10,
+      "groups": {
+        "attack-probe": {
+          "n": 184,
+          "blocked": 151,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/lfi": {
+          "n": 40,
+          "blocked": 30,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/rce": {
+          "n": 52,
+          "blocked": 31,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/sqli": {
+          "n": 40,
+          "blocked": 38,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/xss": {
+          "n": 52,
+          "blocked": 52,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-basic": {
+          "n": 160,
+          "blocked": 18,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-basic/ordinary": {
+          "n": 160,
+          "blocked": 18,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex": {
+          "n": 124,
+          "blocked": 47,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/code-editor": {
+          "n": 40,
+          "blocked": 14,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/rich-text": {
+          "n": 32,
+          "blocked": 25,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/search-symbols": {
+          "n": 52,
+          "blocked": 8,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe": {
+          "n": 52,
+          "blocked": 26,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/nosqli-text": {
+          "n": 20,
+          "blocked": 16,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/open-redirect": {
+          "n": 12,
+          "blocked": 0,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/ssrf": {
+          "n": 20,
+          "blocked": 10,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "crs-positive": {
+          "n": 3225,
+          "blocked": 2599,
+          "errors": 0,
+          "expected_matched": 3124
+        },
+        "crs-positive/REQUEST-930-APPLICATION-ATTACK-LFI": {
+          "n": 42,
+          "blocked": 13,
+          "errors": 0,
+          "expected_matched": 17
+        },
+        "crs-positive/REQUEST-931-APPLICATION-ATTACK-RFI": {
+          "n": 35,
+          "blocked": 9,
+          "errors": 0,
+          "expected_matched": 34
+        },
+        "crs-positive/REQUEST-932-APPLICATION-ATTACK-RCE": {
+          "n": 608,
+          "blocked": 516,
+          "errors": 0,
+          "expected_matched": 579
+        },
+        "crs-positive/REQUEST-933-APPLICATION-ATTACK-PHP": {
+          "n": 220,
+          "blocked": 171,
+          "errors": 0,
+          "expected_matched": 220
+        },
+        "crs-positive/REQUEST-934-APPLICATION-ATTACK-GENERIC": {
+          "n": 199,
+          "blocked": 146,
+          "errors": 0,
+          "expected_matched": 199
+        },
+        "crs-positive/REQUEST-941-APPLICATION-ATTACK-XSS": {
+          "n": 165,
+          "blocked": 130,
+          "errors": 0,
+          "expected_matched": 163
+        },
+        "crs-positive/REQUEST-942-APPLICATION-ATTACK-SQLI": {
+          "n": 782,
+          "blocked": 563,
+          "errors": 0,
+          "expected_matched": 774
+        },
+        "crs-positive/REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION": {
+          "n": 39,
+          "blocked": 2,
+          "errors": 0,
+          "expected_matched": 39
+        },
+        "crs-positive/REQUEST-944-APPLICATION-ATTACK-JAVA": {
+          "n": 1135,
+          "blocked": 1049,
+          "errors": 0,
+          "expected_matched": 1099
+        }
+      }
+    },
+    {
+      "pl": 4,
+      "threshold": 10,
+      "groups": {
+        "attack-probe": {
+          "n": 184,
+          "blocked": 172,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/lfi": {
+          "n": 40,
+          "blocked": 40,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/rce": {
+          "n": 52,
+          "blocked": 40,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/sqli": {
+          "n": 40,
+          "blocked": 40,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/xss": {
+          "n": 52,
+          "blocked": 52,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-basic": {
+          "n": 160,
+          "blocked": 78,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-basic/ordinary": {
+          "n": 160,
+          "blocked": 78,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex": {
+          "n": 124,
+          "blocked": 96,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/code-editor": {
+          "n": 40,
+          "blocked": 32,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/rich-text": {
+          "n": 32,
+          "blocked": 27,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/search-symbols": {
+          "n": 52,
+          "blocked": 37,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe": {
+          "n": 52,
+          "blocked": 43,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/nosqli-text": {
+          "n": 20,
+          "blocked": 19,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/open-redirect": {
+          "n": 12,
+          "blocked": 9,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/ssrf": {
+          "n": 20,
+          "blocked": 15,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "crs-positive": {
+          "n": 3225,
+          "blocked": 2956,
+          "errors": 0,
+          "expected_matched": 3153
+        },
+        "crs-positive/REQUEST-930-APPLICATION-ATTACK-LFI": {
+          "n": 42,
+          "blocked": 17,
+          "errors": 0,
+          "expected_matched": 17
+        },
+        "crs-positive/REQUEST-931-APPLICATION-ATTACK-RFI": {
+          "n": 35,
+          "blocked": 34,
+          "errors": 0,
+          "expected_matched": 34
+        },
+        "crs-positive/REQUEST-932-APPLICATION-ATTACK-RCE": {
+          "n": 608,
+          "blocked": 586,
+          "errors": 0,
+          "expected_matched": 579
+        },
+        "crs-positive/REQUEST-933-APPLICATION-ATTACK-PHP": {
+          "n": 220,
+          "blocked": 191,
+          "errors": 0,
+          "expected_matched": 220
+        },
+        "crs-positive/REQUEST-934-APPLICATION-ATTACK-GENERIC": {
+          "n": 199,
+          "blocked": 186,
+          "errors": 0,
+          "expected_matched": 199
+        },
+        "crs-positive/REQUEST-941-APPLICATION-ATTACK-XSS": {
+          "n": 165,
+          "blocked": 155,
+          "errors": 0,
+          "expected_matched": 163
+        },
+        "crs-positive/REQUEST-942-APPLICATION-ATTACK-SQLI": {
+          "n": 782,
+          "blocked": 721,
+          "errors": 0,
+          "expected_matched": 782
+        },
+        "crs-positive/REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION": {
+          "n": 39,
+          "blocked": 7,
+          "errors": 0,
+          "expected_matched": 39
+        },
+        "crs-positive/REQUEST-944-APPLICATION-ATTACK-JAVA": {
+          "n": 1135,
+          "blocked": 1059,
+          "errors": 0,
+          "expected_matched": 1120
+        }
+      }
+    },
+    {
+      "pl": 1,
+      "threshold": 15,
+      "groups": {
+        "attack-probe": {
+          "n": 184,
+          "blocked": 113,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/lfi": {
+          "n": 40,
+          "blocked": 30,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/rce": {
+          "n": 52,
+          "blocked": 15,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/sqli": {
+          "n": 40,
+          "blocked": 16,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/xss": {
+          "n": 52,
+          "blocked": 52,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-basic": {
+          "n": 160,
+          "blocked": 0,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-basic/ordinary": {
+          "n": 160,
+          "blocked": 0,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex": {
+          "n": 124,
+          "blocked": 0,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/code-editor": {
+          "n": 40,
+          "blocked": 0,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/rich-text": {
+          "n": 32,
+          "blocked": 0,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/search-symbols": {
+          "n": 52,
+          "blocked": 0,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe": {
+          "n": 52,
+          "blocked": 0,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/nosqli-text": {
+          "n": 20,
+          "blocked": 0,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/open-redirect": {
+          "n": 12,
+          "blocked": 0,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/ssrf": {
+          "n": 20,
+          "blocked": 0,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "crs-positive": {
+          "n": 3225,
+          "blocked": 475,
+          "errors": 0,
+          "expected_matched": 1736
+        },
+        "crs-positive/REQUEST-930-APPLICATION-ATTACK-LFI": {
+          "n": 42,
+          "blocked": 8,
+          "errors": 0,
+          "expected_matched": 17
+        },
+        "crs-positive/REQUEST-931-APPLICATION-ATTACK-RFI": {
+          "n": 35,
+          "blocked": 0,
+          "errors": 0,
+          "expected_matched": 12
+        },
+        "crs-positive/REQUEST-932-APPLICATION-ATTACK-RCE": {
+          "n": 608,
+          "blocked": 51,
+          "errors": 0,
+          "expected_matched": 338
+        },
+        "crs-positive/REQUEST-933-APPLICATION-ATTACK-PHP": {
+          "n": 220,
+          "blocked": 16,
+          "errors": 0,
+          "expected_matched": 190
+        },
+        "crs-positive/REQUEST-934-APPLICATION-ATTACK-GENERIC": {
+          "n": 199,
+          "blocked": 15,
+          "errors": 0,
+          "expected_matched": 102
+        },
+        "crs-positive/REQUEST-941-APPLICATION-ATTACK-XSS": {
+          "n": 165,
+          "blocked": 67,
+          "errors": 0,
+          "expected_matched": 148
+        },
+        "crs-positive/REQUEST-942-APPLICATION-ATTACK-SQLI": {
+          "n": 782,
+          "blocked": 91,
+          "errors": 0,
+          "expected_matched": 298
+        },
+        "crs-positive/REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION": {
+          "n": 39,
+          "blocked": 1,
+          "errors": 0,
+          "expected_matched": 39
+        },
+        "crs-positive/REQUEST-944-APPLICATION-ATTACK-JAVA": {
+          "n": 1135,
+          "blocked": 226,
+          "errors": 0,
+          "expected_matched": 592
+        }
+      }
+    },
+    {
+      "pl": 2,
+      "threshold": 15,
+      "groups": {
+        "attack-probe": {
+          "n": 184,
+          "blocked": 135,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/lfi": {
+          "n": 40,
+          "blocked": 30,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/rce": {
+          "n": 52,
+          "blocked": 19,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/sqli": {
+          "n": 40,
+          "blocked": 34,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/xss": {
+          "n": 52,
+          "blocked": 52,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-basic": {
+          "n": 160,
+          "blocked": 0,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-basic/ordinary": {
+          "n": 160,
+          "blocked": 0,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex": {
+          "n": 124,
+          "blocked": 21,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/code-editor": {
+          "n": 40,
+          "blocked": 6,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/rich-text": {
+          "n": 32,
+          "blocked": 15,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/search-symbols": {
+          "n": 52,
+          "blocked": 0,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe": {
+          "n": 52,
+          "blocked": 13,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/nosqli-text": {
+          "n": 20,
+          "blocked": 5,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/open-redirect": {
+          "n": 12,
+          "blocked": 0,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/ssrf": {
+          "n": 20,
+          "blocked": 8,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "crs-positive": {
+          "n": 3225,
+          "blocked": 1352,
+          "errors": 0,
+          "expected_matched": 2685
+        },
+        "crs-positive/REQUEST-930-APPLICATION-ATTACK-LFI": {
+          "n": 42,
+          "blocked": 11,
+          "errors": 0,
+          "expected_matched": 17
+        },
+        "crs-positive/REQUEST-931-APPLICATION-ATTACK-RFI": {
+          "n": 35,
+          "blocked": 2,
+          "errors": 0,
+          "expected_matched": 34
+        },
+        "crs-positive/REQUEST-932-APPLICATION-ATTACK-RCE": {
+          "n": 608,
+          "blocked": 264,
+          "errors": 0,
+          "expected_matched": 527
+        },
+        "crs-positive/REQUEST-933-APPLICATION-ATTACK-PHP": {
+          "n": 220,
+          "blocked": 61,
+          "errors": 0,
+          "expected_matched": 199
+        },
+        "crs-positive/REQUEST-934-APPLICATION-ATTACK-GENERIC": {
+          "n": 199,
+          "blocked": 67,
+          "errors": 0,
+          "expected_matched": 199
+        },
+        "crs-positive/REQUEST-941-APPLICATION-ATTACK-XSS": {
+          "n": 165,
+          "blocked": 99,
+          "errors": 0,
+          "expected_matched": 163
+        },
+        "crs-positive/REQUEST-942-APPLICATION-ATTACK-SQLI": {
+          "n": 782,
+          "blocked": 329,
+          "errors": 0,
+          "expected_matched": 738
+        },
+        "crs-positive/REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION": {
+          "n": 39,
+          "blocked": 1,
+          "errors": 0,
+          "expected_matched": 39
+        },
+        "crs-positive/REQUEST-944-APPLICATION-ATTACK-JAVA": {
+          "n": 1135,
+          "blocked": 518,
+          "errors": 0,
+          "expected_matched": 769
+        }
+      }
+    },
+    {
+      "pl": 3,
+      "threshold": 15,
+      "groups": {
+        "attack-probe": {
+          "n": 184,
+          "blocked": 139,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/lfi": {
+          "n": 40,
+          "blocked": 30,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/rce": {
+          "n": 52,
+          "blocked": 22,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/sqli": {
+          "n": 40,
+          "blocked": 35,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/xss": {
+          "n": 52,
+          "blocked": 52,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-basic": {
+          "n": 160,
+          "blocked": 1,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-basic/ordinary": {
+          "n": 160,
+          "blocked": 1,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex": {
+          "n": 124,
+          "blocked": 28,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/code-editor": {
+          "n": 40,
+          "blocked": 7,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/rich-text": {
+          "n": 32,
+          "blocked": 21,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/search-symbols": {
+          "n": 52,
+          "blocked": 0,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe": {
+          "n": 52,
+          "blocked": 19,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/nosqli-text": {
+          "n": 20,
+          "blocked": 11,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/open-redirect": {
+          "n": 12,
+          "blocked": 0,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/ssrf": {
+          "n": 20,
+          "blocked": 8,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "crs-positive": {
+          "n": 3225,
+          "blocked": 1617,
+          "errors": 0,
+          "expected_matched": 3124
+        },
+        "crs-positive/REQUEST-930-APPLICATION-ATTACK-LFI": {
+          "n": 42,
+          "blocked": 11,
+          "errors": 0,
+          "expected_matched": 17
+        },
+        "crs-positive/REQUEST-931-APPLICATION-ATTACK-RFI": {
+          "n": 35,
+          "blocked": 3,
+          "errors": 0,
+          "expected_matched": 34
+        },
+        "crs-positive/REQUEST-932-APPLICATION-ATTACK-RCE": {
+          "n": 608,
+          "blocked": 381,
+          "errors": 0,
+          "expected_matched": 579
+        },
+        "crs-positive/REQUEST-933-APPLICATION-ATTACK-PHP": {
+          "n": 220,
+          "blocked": 100,
+          "errors": 0,
+          "expected_matched": 220
+        },
+        "crs-positive/REQUEST-934-APPLICATION-ATTACK-GENERIC": {
+          "n": 199,
+          "blocked": 92,
+          "errors": 0,
+          "expected_matched": 199
+        },
+        "crs-positive/REQUEST-941-APPLICATION-ATTACK-XSS": {
+          "n": 165,
+          "blocked": 104,
+          "errors": 0,
+          "expected_matched": 163
+        },
+        "crs-positive/REQUEST-942-APPLICATION-ATTACK-SQLI": {
+          "n": 782,
+          "blocked": 388,
+          "errors": 0,
+          "expected_matched": 774
+        },
+        "crs-positive/REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION": {
+          "n": 39,
+          "blocked": 1,
+          "errors": 0,
+          "expected_matched": 39
+        },
+        "crs-positive/REQUEST-944-APPLICATION-ATTACK-JAVA": {
+          "n": 1135,
+          "blocked": 537,
+          "errors": 0,
+          "expected_matched": 1099
+        }
+      }
+    },
+    {
+      "pl": 4,
+      "threshold": 15,
+      "groups": {
+        "attack-probe": {
+          "n": 184,
+          "blocked": 167,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/lfi": {
+          "n": 40,
+          "blocked": 40,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/rce": {
+          "n": 52,
+          "blocked": 37,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/sqli": {
+          "n": 40,
+          "blocked": 38,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "attack-probe/xss": {
+          "n": 52,
+          "blocked": 52,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-basic": {
+          "n": 160,
+          "blocked": 56,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-basic/ordinary": {
+          "n": 160,
+          "blocked": 56,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex": {
+          "n": 124,
+          "blocked": 80,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/code-editor": {
+          "n": 40,
+          "blocked": 27,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/rich-text": {
+          "n": 32,
+          "blocked": 25,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "benign-complex/search-symbols": {
+          "n": 52,
+          "blocked": 28,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe": {
+          "n": 52,
+          "blocked": 39,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/nosqli-text": {
+          "n": 20,
+          "blocked": 18,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/open-redirect": {
+          "n": 12,
+          "blocked": 6,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "context-probe/ssrf": {
+          "n": 20,
+          "blocked": 15,
+          "errors": 0,
+          "expected_matched": 0
+        },
+        "crs-positive": {
+          "n": 3225,
+          "blocked": 2323,
+          "errors": 0,
+          "expected_matched": 3153
+        },
+        "crs-positive/REQUEST-930-APPLICATION-ATTACK-LFI": {
+          "n": 42,
+          "blocked": 13,
+          "errors": 0,
+          "expected_matched": 17
+        },
+        "crs-positive/REQUEST-931-APPLICATION-ATTACK-RFI": {
+          "n": 35,
+          "blocked": 10,
+          "errors": 0,
+          "expected_matched": 34
+        },
+        "crs-positive/REQUEST-932-APPLICATION-ATTACK-RCE": {
+          "n": 608,
+          "blocked": 465,
+          "errors": 0,
+          "expected_matched": 579
+        },
+        "crs-positive/REQUEST-933-APPLICATION-ATTACK-PHP": {
+          "n": 220,
+          "blocked": 162,
+          "errors": 0,
+          "expected_matched": 220
+        },
+        "crs-positive/REQUEST-934-APPLICATION-ATTACK-GENERIC": {
+          "n": 199,
+          "blocked": 143,
+          "errors": 0,
+          "expected_matched": 199
+        },
+        "crs-positive/REQUEST-941-APPLICATION-ATTACK-XSS": {
+          "n": 165,
+          "blocked": 137,
+          "errors": 0,
+          "expected_matched": 163
+        },
+        "crs-positive/REQUEST-942-APPLICATION-ATTACK-SQLI": {
+          "n": 782,
+          "blocked": 696,
+          "errors": 0,
+          "expected_matched": 782
+        },
+        "crs-positive/REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION": {
+          "n": 39,
+          "blocked": 3,
+          "errors": 0,
+          "expected_matched": 39
+        },
+        "crs-positive/REQUEST-944-APPLICATION-ATTACK-JAVA": {
+          "n": 1135,
+          "blocked": 694,
+          "errors": 0,
+          "expected_matched": 1120
+        }
+      }
+    }
+  ]
+}

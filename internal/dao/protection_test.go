@@ -2,14 +2,14 @@ package dao
 
 import (
 	"errors"
+	"github.com/fly12323/RWAF/internal/config"
+	"github.com/fly12323/RWAF/internal/model"
 	"github.com/google/uuid"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"os"
 	"strings"
 	"testing"
-	"github.com/fly12323/RWAF/internal/config"
-	"github.com/fly12323/RWAF/internal/model"
 )
 
 func TestLegacyGlobalPolicyMigration(t *testing.T) {
@@ -61,14 +61,33 @@ func TestLegacyGlobalPolicyMigration(t *testing.T) {
 		if err := tx.Model(&c).Update("score_threshold", 77).Error; err != nil {
 			return err
 		}
+		// Simulate a persisted policy from before the PL column was introduced.
+		if err := tx.Exec("ALTER TABLE global_protection_config DROP COLUMN paranoia_level").Error; err != nil {
+			return err
+		}
+		if err := tx.AutoMigrate(&model.ProtectionConfig{}); err != nil {
+			return err
+		}
 		if err := initializeProtection(tx); err != nil {
 			return err
 		}
 		if err := tx.First(&c, 1).Error; err != nil {
 			return err
 		}
-		if c.ScoreThreshold != 77 {
+		if c.ScoreThreshold != 77 || c.ParanoiaLevel != 1 {
 			return errors.New("repeated migration overwrote existing policy")
+		}
+		if err := tx.Model(&c).Update("paranoia_level", 3).Error; err != nil {
+			return err
+		}
+		if err := tx.AutoMigrate(&model.ProtectionConfig{}); err != nil {
+			return err
+		}
+		if err := tx.First(&c, 1).Error; err != nil {
+			return err
+		}
+		if c.ParanoiaLevel != 3 || c.ScoreThreshold != 77 {
+			return errors.New("repeated migration overwrote PL selection")
 		}
 		return rollback
 	})

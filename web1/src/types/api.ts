@@ -61,6 +61,7 @@ export interface Site {
 }
 
 export interface Rule {
+	profile?: { role: string; scope: string; paranoia_level: number; strength: string; false_positive_risk: string; risk_reason: string; scenario: string; basis: string }
   id: number
   rule_id: string
   rule_file?: string
@@ -86,6 +87,10 @@ export interface RequestLog {
   decision_source?: string
   decision_reason?: string
   rule_evaluated?: boolean
+	protection_mode?: string
+	policy_version?: string
+	score_basis?: string
+	detections?: Array<{ source: string; action: string; reason: string }>
   source_inferred?: boolean
   action: string
   created_at: string
@@ -115,6 +120,7 @@ export interface IPItem {
 }
 
 export interface ProtectionConfig {
+	paranoia_level?: number
   id?: number
   enabled: boolean
   waf_mode: string
@@ -173,6 +179,7 @@ export interface WAFStatus {
   status: string
   site_count: number
   waf_mode: string
+	protection_mode?: string
   online_users: number
 }
 
