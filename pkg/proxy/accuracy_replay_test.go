@@ -26,6 +26,9 @@ func TestAccuracyCorpusMatchesProxy(t *testing.T) {
 		t.Skip("run scripts/accuracy first and set WAF_ACCURACY=1")
 	}
 	path := "../../output/accuracy/2026-10-10"
+	if override := os.Getenv("WAF_ACCURACY_DIR"); override != "" {
+		path = override
+	}
 	var samples []struct {
 		ID, Method, URI, Body string
 		Headers               map[string]string

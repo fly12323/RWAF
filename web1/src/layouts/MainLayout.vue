@@ -66,7 +66,7 @@
           <div class="header-time">{{ currentTime }}</div>
           <div class="waf-status" :class="{ online: wafOnline }">
             <span class="status-dot"></span>
-            <span>{{ wafOnline ? '服务运行正常' : '服务连接异常' }}</span>
+            <span role="status">{{ wafStatusText }}</span>
           </div>
         </div>
       </header>
@@ -176,7 +176,9 @@ const authStore = useAuthStore()
 
 const sidebarCollapsed = ref(false)
 const currentTime = ref('')
-const wafOnline = ref(true)
+const healthStatus = ref('checking')
+const wafOnline = computed(() => healthStatus.value === 'healthy')
+const wafStatusText = computed(() => ({ checking: '正在检查服务', starting: '服务启动中', healthy: '服务运行正常', degraded: '服务存在异常', stale: '服务采样已过期', stopping: '服务正在停止', disconnected: '服务连接异常' } as Record<string, string>)[healthStatus.value] ?? '服务状态未知')
 
 const currentRoute = computed(() => route.path)
 
@@ -229,10 +231,9 @@ const updateTime = () => {
 
 const checkWafStatus = async () => {
   try {
-    await api.wafStatus()
-    wafOnline.value = true
+    healthStatus.value = (await api.health()).status
   } catch {
-    wafOnline.value = false
+    healthStatus.value = 'disconnected'
   }
 }
 
@@ -249,7 +250,7 @@ onMounted(() => {
   updateTime()
   timeInterval = window.setInterval(updateTime, 1000)
   checkWafStatus()
-  wafCheckInterval = window.setInterval(checkWafStatus, 30000)
+  wafCheckInterval = window.setInterval(checkWafStatus, 10000)
 })
 
 onUnmounted(() => {

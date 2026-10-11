@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/fly12323/RWAF/internal/config"
 	"log"
 	"sync"
 	"sync/atomic"
 	"time"
-	"github.com/fly12323/RWAF/internal/config"
 
 	"github.com/segmentio/kafka-go"
 )
@@ -202,7 +202,13 @@ func (p *Publisher) Stats() map[string]int64 {
 	if p.disk != nil {
 		return p.disk.stats()
 	}
-	return map[string]int64{"accepted": p.accepted.Load(), "published": p.published.Load(),
+	p.mu.RLock()
+	available := int64(1)
+	if p.closed {
+		available = 0
+	}
+	p.mu.RUnlock()
+	return map[string]int64{"available": available, "accepted": p.accepted.Load(), "published": p.published.Load(),
 		"dropped": p.dropped.Load(), "errors": p.errors.Load(), "queued": int64(len(p.queue)),
 		"capacity": int64(cap(p.queue))}
 }

@@ -11,6 +11,14 @@ export interface PageData<T> {
   page_size: number
 }
 
+export interface QuarantinedEvent {
+  id: number; consumer_group: string; topic: string; partition: number; offset: number
+  reason: string; status: 'pending' | 'replayed'; payload_bytes: number; payload_sha256: string
+  created_at: string; payload?: string; headers?: string; message_key?: string; message_time: string
+  replayed_at?: string; replayed_by?: string; replay_event_id?: string; replay_payload?: string
+  replay_sha256?: string; replay_reason?: string
+}
+
 export interface UserInfo {
 	 must_change_password?: boolean
   id: number
@@ -33,10 +41,14 @@ export interface WeakPasswordEvent {
   representation: string; dictionary_version: string; outcome: string; created_at: string
 }
 export interface MonitorConfig {
+  database_budget_mb: number; database_growth_mb_hour: number; spool_disk_free_mb: number; log_query_p95_ms: number
   enabled: boolean; interval_seconds: number; kafka_lag_threshold: number; queue_percent: number
   consumer_timeout_seconds: number; heap_limit_mb: number; proxy_error_percent: number; proxy_min_requests: number; proxy_p99_ms: number
 }
 export interface RuntimeSnapshot {
+  health: { status: string; ready: boolean; stale: boolean; age_seconds: number }; interval_seconds: number
+  storage: { database_bytes: number | null; tables: { name: string; bytes: number; estimated_rows: number }[]; growth_mb_hour: number | null; growth_window_seconds: number; spool_disk_free_bytes: number | null; database_error: boolean; spool_disk_error: boolean }
+  log_queries: { count: number; errors: number; canceled: number; average_ms: number; p95_bucket_ms: number }
   sampled_at?: string; uptime_seconds: number; dependencies: Record<string, string>; kafka_lag: number | null
   consumer: { state?: string; stale?: boolean; heartbeat_at?: number; persisted?: number } | null
   log_pipeline: Record<string, number>; weak_password: Record<string, number | string | boolean>
@@ -44,6 +56,8 @@ export interface RuntimeSnapshot {
   heap_mb: number; goroutines: number; conditions: { key: string; severity: string; message: string }[]
   config_error: boolean; alert_store_error: boolean; alerts_enabled: boolean
 }
+
+export interface HealthStatus { status: 'starting' | 'healthy' | 'degraded' | 'stale' | 'stopping'; ready: boolean; stale: boolean; age_seconds: number }
 export interface SecurityAlert {
   id: number; key: string; source: string; severity: string; message: string; status: string; occurrences: number
   created_at: string; last_seen: string; resolved_at?: string; acknowledged_at?: string; acknowledged_by: string

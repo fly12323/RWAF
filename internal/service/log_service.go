@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"github.com/fly12323/RWAF/internal/config"
 	"gorm.io/gorm"
@@ -11,7 +12,21 @@ import (
 )
 
 // LogService 日志服务
-type LogService struct{}
+type LogService struct{ ctx context.Context }
+
+func (s *LogService) WithContext(ctx context.Context) *LogService { return &LogService{ctx: ctx} }
+func (s *LogService) context() context.Context {
+	if s.ctx != nil {
+		return s.ctx
+	}
+	return context.Background()
+}
+func (s *LogService) db() *gorm.DB {
+	if s.ctx != nil {
+		return dao.GetDB().WithContext(s.ctx)
+	}
+	return dao.GetDB()
+}
 
 // NewLogService 创建日志服务实例
 func NewLogService() *LogService {
@@ -153,7 +168,7 @@ func GetMainAttackType(logID uint) string {
 // GetStatistics 获取日志统计
 func (s *LogService) GetStatistics(startTime, endTime *time.Time) (*StatisticsResponse, error) {
 	key := fmt.Sprintf("statistics:%s:%s", logRangeKey(startTime), logRangeKey(endTime))
-	return cachedLogQuery(key, func() (*StatisticsResponse, error) {
+	return cachedLogQueryContext(s.context(), key, func() (*StatisticsResponse, error) {
 		result := &StatisticsResponse{ByAction: []ActionCount{}, BySite: []SiteCount{}, ByAttackType: []AttackTypeCount{}, TopAttackIPs: []IPCount{}, TopRules: []RuleCount{}}
 		// GROUPING SETS calculates totals, averages and all three breakdowns in one scan.
 		var rows []struct {
@@ -170,7 +185,7 @@ func (s *LogService) GetStatistics(startTime, endTime *time.Time) (*StatisticsRe
    FROM request_logs WHERE (?::timestamptz IS NULL OR created_at >= ?::timestamptz)
    AND (?::timestamptz IS NULL OR created_at <= ?::timestamptz)
    GROUP BY GROUPING SETS ((), (action), (site_id), (attack_type))`
-		if err := dao.GetDB().Raw(query, startTime, startTime, endTime, endTime).Scan(&rows).Error; err != nil {
+		if err := s.db().Raw(query, startTime, startTime, endTime, endTime).Scan(&rows).Error; err != nil {
 			return nil, err
 		}
 		for _, row := range rows {
@@ -193,11 +208,11 @@ func (s *LogService) GetStatistics(startTime, endTime *time.Time) (*StatisticsRe
 				}
 			}
 		}
-		db := logTimeRange(dao.GetDB().Model(&model.RequestLog{}), startTime, endTime)
+		db := logTimeRange(s.db().Model(&model.RequestLog{}), startTime, endTime)
 		if err := db.Select("client_ip, count(*) as count").Where("action = ?", "block").Group("client_ip").Order("count DESC, client_ip").Limit(10).Scan(&result.TopAttackIPs).Error; err != nil {
 			return nil, err
 		}
-		db = logTimeRange(dao.GetDB().Model(&model.RuleMatch{}), startTime, endTime)
+		db = logTimeRange(s.db().Model(&model.RuleMatch{}), startTime, endTime)
 		if err := db.Select("rule_id, count(*) as count").Group("rule_id").Order("count DESC, rule_id").Limit(10).Scan(&result.TopRules).Error; err != nil {
 			return nil, err
 		}
@@ -223,7 +238,7 @@ func (s *LogService) GetAttackTypeStatistics(startTime, endTime *time.Time) ([]m
 	startStr := formatTimeToString(startTime)
 	endStr := formatTimeToString(endTime)
 
-	db := dao.GetDB().Model(&model.RequestLog{})
+	db := s.db().Model(&model.RequestLog{})
 	if startStr != "" {
 		db = db.Where("created_at >= ?", startStr)
 	}
@@ -250,9 +265,9 @@ func (s *LogService) GetAttackIPsWithLimit(startTime, endTime *time.Time, limit 
 		return nil, fmt.Errorf("invalid IP result limit")
 	}
 	key := fmt.Sprintf("attack-ips:%s:%s:%d", logRangeKey(startTime), logRangeKey(endTime), limit)
-	return cachedLogQuery(key, func() ([]AttackIPInfo, error) {
+	return cachedLogQueryContext(s.context(), key, func() ([]AttackIPInfo, error) {
 		result := []AttackIPInfo{}
-		err := logTimeRange(dao.GetDB().Model(&model.RequestLog{}), startTime, endTime).
+		err := logTimeRange(s.db().Model(&model.RequestLog{}), startTime, endTime).
 			Select(`client_ip, count(*) AS attack_count, MIN(created_at) AS first_attack, MAX(created_at) AS last_attack,
     COALESCE(json_agg(DISTINCT attack_type) FILTER (WHERE attack_type != ''), '[]'::json)::text AS attack_types`).
 			Where("action = ?", "block").Group("client_ip").Order("attack_count DESC, client_ip").Limit(limit).Scan(&result).Error
@@ -262,10 +277,13 @@ func (s *LogService) GetAttackIPsWithLimit(startTime, endTime *time.Time, limit 
 
 // GetRequestLogList 获取请求日志列表
 func (s *LogService) GetRequestLogList(page, pageSize int, action, attackType string, siteID uint, clientIP, startTime, endTime string) ([]model.RequestLog, int64, error) {
+	if page < 1 || page > 100000 || pageSize < 1 || pageSize > 100 {
+		return nil, 0, fmt.Errorf("日志页码须为 1–100000，每页 1–100 条")
+	}
 	var logs []model.RequestLog
 	var total int64
 
-	db := dao.GetDB().Model(&model.RequestLog{})
+	db := s.db().Model(&model.RequestLog{})
 
 	// 筛选条件
 	if action != "" {
@@ -316,14 +334,16 @@ type LogDetailResponse struct {
 // GetRequestLogDetail 获取请求日志详情
 func (s *LogService) GetRequestLogDetail(id uint) (*LogDetailResponse, error) {
 	var log model.RequestLog
-	if err := dao.GetDB().First(&log, id).Error; err != nil {
+	if err := s.db().First(&log, id).Error; err != nil {
 		return nil, err
 	}
 	DescribeDecision(&log)
 
 	// 获取匹配的规则
 	var matches []model.RuleMatch
-	dao.GetDB().Where("request_log_id = ?", id).Find(&matches)
+	if err := s.db().Where("request_log_id = ?", id).Find(&matches).Error; err != nil {
+		return nil, err
+	}
 
 	// 统计攻击类型（排除 Protocol Issue）
 	attackTypes := make(map[string]int)
@@ -369,9 +389,9 @@ func (s *LogService) GetDailyStatistics(days int) ([]DailyStatistics, error) {
 	now := time.Now()
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.Local)
 	start := today.AddDate(0, 0, -days+1)
-	return cachedLogQuery(fmt.Sprintf("daily:%s:%d", today.Format("2006-01-02"), days), func() ([]DailyStatistics, error) {
+	return cachedLogQueryContext(s.context(), fmt.Sprintf("daily:%s:%d", today.Format("2006-01-02"), days), func() ([]DailyStatistics, error) {
 		var rows []DailyStatistics
-		err := dao.GetDB().Model(&model.RequestLog{}).Select(`to_char(created_at AT TIME ZONE 'Asia/Shanghai','YYYY-MM-DD') AS date, count(*) AS total,
+		err := s.db().Model(&model.RequestLog{}).Select(`to_char(created_at AT TIME ZONE 'Asia/Shanghai','YYYY-MM-DD') AS date, count(*) AS total,
     count(*) FILTER (WHERE action='block') AS block_count, count(*) FILTER (WHERE action='pass') AS pass_count`).
 			Where("created_at >= ? AND created_at < ?", start, today.AddDate(0, 0, 1)).Group("date").Order("date").Scan(&rows).Error
 		if err != nil {
@@ -417,13 +437,13 @@ func (s *LogService) GetTrend(startTime, endTime *time.Time) ([]TrendStatistics,
 		start, end = keyStart, keyEnd
 	}
 	key := fmt.Sprintf("trend:%d:%d:%d", keyStart.Unix(), keyEnd.Unix(), int64(interval))
-	return cachedLogQuery(key, func() ([]TrendStatistics, error) {
+	return cachedLogQueryContext(s.context(), key, func() ([]TrendStatistics, error) {
 		var rows []struct {
 			Bucket     int
 			Total      int64
 			BlockCount int64
 		}
-		err := dao.GetDB().Model(&model.RequestLog{}).Select(`floor(extract(epoch FROM (created_at - ?::timestamptz)) / ?)::int AS bucket,
+		err := s.db().Model(&model.RequestLog{}).Select(`floor(extract(epoch FROM (created_at - ?::timestamptz)) / ?)::int AS bucket,
    count(*) AS total, count(*) FILTER (WHERE action='block') AS block_count`, start, interval.Seconds()).
 			Where("created_at >= ? AND created_at <= ?", start, end).Group("bucket").Order("bucket").Scan(&rows).Error
 		if err != nil {
@@ -477,21 +497,21 @@ func (s *LogService) DeleteOldLogs(days int) (int64, error) {
 	if c := config.GetConfig(); c != nil && c.Log.CleanupBatchSize > 0 {
 		batch = c.Log.CleanupBatchSize
 	}
-	return deleteRequestLogs(dao.GetDB(), time.Now().AddDate(0, 0, -days), batch)
+	return deleteRequestLogs(s.db(), time.Now().AddDate(0, 0, -days), batch)
 }
 
 // UpdateAttackType 更新日志的攻击类型
 func (s *LogService) UpdateAttackType(logID uint) {
 	attackType := GetMainAttackType(logID)
 	if attackType != "" {
-		dao.GetDB().Model(&model.RequestLog{}).Where("id = ?", logID).Update("attack_type", attackType)
+		s.db().Model(&model.RequestLog{}).Where("id = ?", logID).Update("attack_type", attackType)
 	}
 }
 
 // UpdateAllAttackTypes 更新所有日志的攻击类型
 func (s *LogService) UpdateAllAttackTypes() error {
 	var logs []model.RequestLog
-	dao.GetDB().Where("attack_type = ''").Find(&logs)
+	s.db().Where("attack_type = ''").Find(&logs)
 
 	for _, log := range logs {
 		s.UpdateAttackType(log.ID)

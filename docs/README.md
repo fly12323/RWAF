@@ -4,6 +4,9 @@
 
 - [HTTPS、域名接入与日志可靠性](https-and-logging.md)
 - [v1.1.1 更新说明](../CHANGELOG.md)
+- [V1.1.2 P0 实现与前后验证（2026-10-11）](benchmarks/2026-10-11/p0-validation.md)
+- [V1.1.2 P1 健康、容量与日志查询验证（2026-10-11）](benchmarks/2026-10-11/p1-validation.md)
+- [V1.1.2 发布前复查与补充修复（2026-10-11）](benchmarks/2026-10-11/v112-recheck.md)
 - [请求日志采集说明](request-logs.md)
 - [防护链路、评分与模块边界](protection-pipeline.md)
 - [规则分类、误报风险与策略预设](rule-classification.md)

@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"github.com/fly12323/RWAF/internal/config"
 	"hash/crc32"
 	"hash/fnv"
 	"io"
@@ -15,7 +16,6 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
-	"github.com/fly12323/RWAF/internal/config"
 
 	"github.com/segmentio/kafka-go"
 )
@@ -490,5 +490,11 @@ func (p *diskPublisher) close(ctx context.Context) error {
 }
 
 func (p *diskPublisher) stats() map[string]int64 {
-	return map[string]int64{"accepted": p.accepted.Load(), "published": p.published.Load(), "dropped": p.dropped.Load(), "errors": p.errors.Load(), "queued": p.queued.Load(), "capacity": 0, "spool_bytes": p.used.Load(), "spool_capacity_bytes": p.maxBytes, "recovered": p.recovered, "publisher_workers": int64(len(p.shards)), "durable": 1}
+	p.mu.RLock()
+	available := int64(1)
+	if p.closed {
+		available = 0
+	}
+	p.mu.RUnlock()
+	return map[string]int64{"available": available, "accepted": p.accepted.Load(), "published": p.published.Load(), "dropped": p.dropped.Load(), "errors": p.errors.Load(), "queued": p.queued.Load(), "capacity": 0, "spool_bytes": p.used.Load(), "spool_capacity_bytes": p.maxBytes, "recovered": p.recovered, "publisher_workers": int64(len(p.shards)), "durable": 1}
 }

@@ -63,6 +63,7 @@ func InitDB() error {
 			&model.User{}, &model.Site{}, &model.Rule{}, &model.RuleGroup{},
 			&model.Whitelist{}, &model.SystemConfig{}, &model.ProtectionConfig{},
 			&model.RequestLog{}, &model.RuleMatch{}, &model.CrawlerLog{}, &model.ProcessedEvent{},
+			&model.QuarantinedEvent{},
 			&model.OperationLog{},
 			&model.IPBlacklist{},
 			&model.IPWhitelist{},

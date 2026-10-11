@@ -72,7 +72,7 @@ func run() error {
 	root := flag.String("root", ".", "repository root")
 	out := flag.String("out", "output/accuracy/2026-10-10", "artifact directory")
 	inputPath := flag.String("input", "output/accuracy/2026-10-10/input.json", "curated input corpus")
-	diagnosticJSON := flag.Bool("diagnostic-json", false, "temporary JSON processor selector; no production changes")
+	diagnosticJSON := flag.Bool("diagnostic-json", false, "obsolete: JSON processor is integrated")
 	curatedOnly := flag.Bool("curated-only", false, "omit official regression fixtures")
 	flag.Parse()
 	crs, err := filepath.Abs(filepath.Join(*root, "configs/rules/crs"))
@@ -84,15 +84,9 @@ func run() error {
 		return err
 	}
 	defer os.Remove(custom)
-	experiment := "baseline"
+	experiment := "integrated-json-processor"
 	if *diagnosticJSON {
-		experiment = "temporary-json-selector"
-		directive := `SecRule REQUEST_HEADERS:Content-Type "@rx (?i)^application/(?:[a-z0-9.-]+\+)?json(?:\s*;|$)" "id:1000000002,phase:1,pass,nolog,ctl:requestBodyProcessor=JSON"`
-		diagnosticPath := filepath.Join(custom, "diagnostic.conf")
-		if err := os.WriteFile(diagnosticPath, []byte(directive), 0600); err != nil {
-			return err
-		}
-		defer os.Remove(diagnosticPath)
+		return fmt.Errorf("JSON processor is now integrated; -diagnostic-json is obsolete")
 	}
 	e, err := coraza.NewWAFEngine(&coraza.WAFConfig{CrsDir: crs, CustomRulesDir: custom, EngineMode: "On", RequestBodyLimit: 1024 * 1024})
 	if err != nil {
@@ -104,6 +98,9 @@ func run() error {
 	}
 	input, err := os.ReadFile(*inputPath)
 	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(filepath.Join(*out, "input.json"), input, 0644); err != nil {
 		return err
 	}
 	var samples []sample

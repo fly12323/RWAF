@@ -44,7 +44,7 @@ waf:
 
 # 日志配置
 log:
-  retention_days: 30           # 0 禁用自动清理；事件去重收据保留
+  retention_days: 0            # 禁用自动清理，日志持续保留在数据库；正数表示保留天数
   cleanup_interval_minutes: 60
   cleanup_batch_size: 1000
   statistics_cache_seconds: 5

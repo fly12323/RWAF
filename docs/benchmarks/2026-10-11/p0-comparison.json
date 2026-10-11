@@ -1,0 +1,626 @@
+{
+  "corpus_sha256": "161d7fd47aef53ed739d5e9b088689ee01ffa46e04dbc0efd7ebd37267116e76",
+  "rules_sha256": "2173632276ec6cf1e0076064caa009f8e83789c9f89c36e18a00facccee0e8da",
+  "transactions_per_run": 44940,
+  "errors_before": 0,
+  "errors_after": 0,
+  "changed_curated_transports": {
+    "json": 346
+  },
+  "lost_expected_rule_matches": [],
+  "results": [
+    {
+      "pl": 1,
+      "threshold": 5,
+      "groups": {
+        "benign-basic": {
+          "n": 160,
+          "blocked_before": 6,
+          "blocked_after": 0,
+          "unblocked_before": 154,
+          "unblocked_after": 160,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "benign-complex": {
+          "n": 124,
+          "blocked_before": 19,
+          "blocked_after": 19,
+          "unblocked_before": 105,
+          "unblocked_after": 105,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "attack-probe": {
+          "n": 184,
+          "blocked_before": 140,
+          "blocked_after": 156,
+          "unblocked_before": 44,
+          "unblocked_after": 28,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "context-probe": {
+          "n": 52,
+          "blocked_before": 34,
+          "blocked_after": 35,
+          "unblocked_before": 18,
+          "unblocked_after": 17,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "crs-positive": {
+          "n": 3225,
+          "blocked_before": 2268,
+          "blocked_after": 2277,
+          "unblocked_before": 957,
+          "unblocked_after": 948,
+          "expected_matches_before": 1736,
+          "expected_matches_after": 1743
+        }
+      }
+    },
+    {
+      "pl": 2,
+      "threshold": 5,
+      "groups": {
+        "benign-basic": {
+          "n": 160,
+          "blocked_before": 10,
+          "blocked_after": 4,
+          "unblocked_before": 150,
+          "unblocked_after": 156,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "benign-complex": {
+          "n": 124,
+          "blocked_before": 74,
+          "blocked_after": 80,
+          "unblocked_before": 50,
+          "unblocked_after": 44,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "attack-probe": {
+          "n": 184,
+          "blocked_before": 150,
+          "blocked_after": 163,
+          "unblocked_before": 34,
+          "unblocked_after": 21,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "context-probe": {
+          "n": 52,
+          "blocked_before": 40,
+          "blocked_after": 44,
+          "unblocked_before": 12,
+          "unblocked_after": 8,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "crs-positive": {
+          "n": 3225,
+          "blocked_before": 2918,
+          "blocked_after": 2927,
+          "unblocked_before": 307,
+          "unblocked_after": 298,
+          "expected_matches_before": 2685,
+          "expected_matches_after": 2697
+        }
+      }
+    },
+    {
+      "pl": 3,
+      "threshold": 5,
+      "groups": {
+        "benign-basic": {
+          "n": 160,
+          "blocked_before": 35,
+          "blocked_after": 32,
+          "unblocked_before": 125,
+          "unblocked_after": 128,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "benign-complex": {
+          "n": 124,
+          "blocked_before": 86,
+          "blocked_after": 91,
+          "unblocked_before": 38,
+          "unblocked_after": 33,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "attack-probe": {
+          "n": 184,
+          "blocked_before": 162,
+          "blocked_after": 172,
+          "unblocked_before": 22,
+          "unblocked_after": 12,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "context-probe": {
+          "n": 52,
+          "blocked_before": 40,
+          "blocked_after": 44,
+          "unblocked_before": 12,
+          "unblocked_after": 8,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "crs-positive": {
+          "n": 3225,
+          "blocked_before": 3200,
+          "blocked_after": 3203,
+          "unblocked_before": 25,
+          "unblocked_after": 22,
+          "expected_matches_before": 3124,
+          "expected_matches_after": 3136
+        }
+      }
+    },
+    {
+      "pl": 4,
+      "threshold": 5,
+      "groups": {
+        "benign-basic": {
+          "n": 160,
+          "blocked_before": 108,
+          "blocked_after": 98,
+          "unblocked_before": 52,
+          "unblocked_after": 62,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "benign-complex": {
+          "n": 124,
+          "blocked_before": 106,
+          "blocked_after": 106,
+          "unblocked_before": 18,
+          "unblocked_after": 18,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "attack-probe": {
+          "n": 184,
+          "blocked_before": 172,
+          "blocked_after": 172,
+          "unblocked_before": 12,
+          "unblocked_after": 12,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "context-probe": {
+          "n": 52,
+          "blocked_before": 44,
+          "blocked_after": 44,
+          "unblocked_before": 8,
+          "unblocked_after": 8,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "crs-positive": {
+          "n": 3225,
+          "blocked_before": 3213,
+          "blocked_after": 3213,
+          "unblocked_before": 12,
+          "unblocked_after": 12,
+          "expected_matches_before": 3153,
+          "expected_matches_after": 3170
+        }
+      }
+    },
+    {
+      "pl": 1,
+      "threshold": 10,
+      "groups": {
+        "benign-basic": {
+          "n": 160,
+          "blocked_before": 0,
+          "blocked_after": 0,
+          "unblocked_before": 160,
+          "unblocked_after": 160,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "benign-complex": {
+          "n": 124,
+          "blocked_before": 2,
+          "blocked_after": 3,
+          "unblocked_before": 122,
+          "unblocked_after": 121,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "attack-probe": {
+          "n": 184,
+          "blocked_before": 115,
+          "blocked_after": 127,
+          "unblocked_before": 69,
+          "unblocked_after": 57,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "context-probe": {
+          "n": 52,
+          "blocked_before": 13,
+          "blocked_after": 12,
+          "unblocked_before": 39,
+          "unblocked_after": 40,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "crs-positive": {
+          "n": 3225,
+          "blocked_before": 1171,
+          "blocked_after": 1045,
+          "unblocked_before": 2054,
+          "unblocked_after": 2180,
+          "expected_matches_before": 1736,
+          "expected_matches_after": 1743
+        }
+      }
+    },
+    {
+      "pl": 2,
+      "threshold": 10,
+      "groups": {
+        "benign-basic": {
+          "n": 160,
+          "blocked_before": 2,
+          "blocked_after": 3,
+          "unblocked_before": 158,
+          "unblocked_after": 157,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "benign-complex": {
+          "n": 124,
+          "blocked_before": 44,
+          "blocked_after": 48,
+          "unblocked_before": 80,
+          "unblocked_after": 76,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "attack-probe": {
+          "n": 184,
+          "blocked_before": 144,
+          "blocked_after": 157,
+          "unblocked_before": 40,
+          "unblocked_after": 27,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "context-probe": {
+          "n": 52,
+          "blocked_before": 24,
+          "blocked_after": 27,
+          "unblocked_before": 28,
+          "unblocked_after": 25,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "crs-positive": {
+          "n": 3225,
+          "blocked_before": 2131,
+          "blocked_after": 2065,
+          "unblocked_before": 1094,
+          "unblocked_after": 1160,
+          "expected_matches_before": 2685,
+          "expected_matches_after": 2697
+        }
+      }
+    },
+    {
+      "pl": 3,
+      "threshold": 10,
+      "groups": {
+        "benign-basic": {
+          "n": 160,
+          "blocked_before": 18,
+          "blocked_after": 17,
+          "unblocked_before": 142,
+          "unblocked_after": 143,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "benign-complex": {
+          "n": 124,
+          "blocked_before": 47,
+          "blocked_after": 50,
+          "unblocked_before": 77,
+          "unblocked_after": 74,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "attack-probe": {
+          "n": 184,
+          "blocked_before": 151,
+          "blocked_after": 163,
+          "unblocked_before": 33,
+          "unblocked_after": 21,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "context-probe": {
+          "n": 52,
+          "blocked_before": 26,
+          "blocked_after": 30,
+          "unblocked_before": 26,
+          "unblocked_after": 22,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "crs-positive": {
+          "n": 3225,
+          "blocked_before": 2599,
+          "blocked_after": 2470,
+          "unblocked_before": 626,
+          "unblocked_after": 755,
+          "expected_matches_before": 3124,
+          "expected_matches_after": 3136
+        }
+      }
+    },
+    {
+      "pl": 4,
+      "threshold": 10,
+      "groups": {
+        "benign-basic": {
+          "n": 160,
+          "blocked_before": 78,
+          "blocked_after": 46,
+          "unblocked_before": 82,
+          "unblocked_after": 114,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "benign-complex": {
+          "n": 124,
+          "blocked_before": 96,
+          "blocked_after": 93,
+          "unblocked_before": 28,
+          "unblocked_after": 31,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "attack-probe": {
+          "n": 184,
+          "blocked_before": 172,
+          "blocked_after": 172,
+          "unblocked_before": 12,
+          "unblocked_after": 12,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "context-probe": {
+          "n": 52,
+          "blocked_before": 43,
+          "blocked_after": 43,
+          "unblocked_before": 9,
+          "unblocked_after": 9,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "crs-positive": {
+          "n": 3225,
+          "blocked_before": 2956,
+          "blocked_after": 2818,
+          "unblocked_before": 269,
+          "unblocked_after": 407,
+          "expected_matches_before": 3153,
+          "expected_matches_after": 3170
+        }
+      }
+    },
+    {
+      "pl": 1,
+      "threshold": 15,
+      "groups": {
+        "benign-basic": {
+          "n": 160,
+          "blocked_before": 0,
+          "blocked_after": 0,
+          "unblocked_before": 160,
+          "unblocked_after": 160,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "benign-complex": {
+          "n": 124,
+          "blocked_before": 0,
+          "blocked_after": 0,
+          "unblocked_before": 124,
+          "unblocked_after": 124,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "attack-probe": {
+          "n": 184,
+          "blocked_before": 113,
+          "blocked_after": 127,
+          "unblocked_before": 71,
+          "unblocked_after": 57,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "context-probe": {
+          "n": 52,
+          "blocked_before": 0,
+          "blocked_after": 0,
+          "unblocked_before": 52,
+          "unblocked_after": 52,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "crs-positive": {
+          "n": 3225,
+          "blocked_before": 475,
+          "blocked_after": 476,
+          "unblocked_before": 2750,
+          "unblocked_after": 2749,
+          "expected_matches_before": 1736,
+          "expected_matches_after": 1743
+        }
+      }
+    },
+    {
+      "pl": 2,
+      "threshold": 15,
+      "groups": {
+        "benign-basic": {
+          "n": 160,
+          "blocked_before": 0,
+          "blocked_after": 0,
+          "unblocked_before": 160,
+          "unblocked_after": 160,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "benign-complex": {
+          "n": 124,
+          "blocked_before": 21,
+          "blocked_after": 20,
+          "unblocked_before": 103,
+          "unblocked_after": 104,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "attack-probe": {
+          "n": 184,
+          "blocked_before": 135,
+          "blocked_after": 149,
+          "unblocked_before": 49,
+          "unblocked_after": 35,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "context-probe": {
+          "n": 52,
+          "blocked_before": 13,
+          "blocked_after": 12,
+          "unblocked_before": 39,
+          "unblocked_after": 40,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "crs-positive": {
+          "n": 3225,
+          "blocked_before": 1352,
+          "blocked_after": 1310,
+          "unblocked_before": 1873,
+          "unblocked_after": 1915,
+          "expected_matches_before": 2685,
+          "expected_matches_after": 2697
+        }
+      }
+    },
+    {
+      "pl": 3,
+      "threshold": 15,
+      "groups": {
+        "benign-basic": {
+          "n": 160,
+          "blocked_before": 1,
+          "blocked_after": 0,
+          "unblocked_before": 159,
+          "unblocked_after": 160,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "benign-complex": {
+          "n": 124,
+          "blocked_before": 28,
+          "blocked_after": 27,
+          "unblocked_before": 96,
+          "unblocked_after": 97,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "attack-probe": {
+          "n": 184,
+          "blocked_before": 139,
+          "blocked_after": 149,
+          "unblocked_before": 45,
+          "unblocked_after": 35,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "context-probe": {
+          "n": 52,
+          "blocked_before": 19,
+          "blocked_after": 21,
+          "unblocked_before": 33,
+          "unblocked_after": 31,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "crs-positive": {
+          "n": 3225,
+          "blocked_before": 1617,
+          "blocked_after": 1578,
+          "unblocked_before": 1608,
+          "unblocked_after": 1647,
+          "expected_matches_before": 3124,
+          "expected_matches_after": 3136
+        }
+      }
+    },
+    {
+      "pl": 4,
+      "threshold": 15,
+      "groups": {
+        "benign-basic": {
+          "n": 160,
+          "blocked_before": 56,
+          "blocked_after": 17,
+          "unblocked_before": 104,
+          "unblocked_after": 143,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "benign-complex": {
+          "n": 124,
+          "blocked_before": 80,
+          "blocked_after": 65,
+          "unblocked_before": 44,
+          "unblocked_after": 59,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "attack-probe": {
+          "n": 184,
+          "blocked_before": 167,
+          "blocked_after": 164,
+          "unblocked_before": 17,
+          "unblocked_after": 20,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "context-probe": {
+          "n": 52,
+          "blocked_before": 39,
+          "blocked_after": 36,
+          "unblocked_before": 13,
+          "unblocked_after": 16,
+          "expected_matches_before": 0,
+          "expected_matches_after": 0
+        },
+        "crs-positive": {
+          "n": 3225,
+          "blocked_before": 2323,
+          "blocked_after": 2143,
+          "unblocked_before": 902,
+          "unblocked_after": 1082,
+          "expected_matches_before": 3153,
+          "expected_matches_after": 3170
+        }
+      }
+    }
+  ],
+  "changed_verdict_count": 1283
+}

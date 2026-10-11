@@ -5,17 +5,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
-	"runtime"
-	"sync"
-	"sync/atomic"
-	"time"
 	"github.com/fly12323/RWAF/internal/config"
 	"github.com/fly12323/RWAF/internal/dao"
 	"github.com/fly12323/RWAF/internal/model"
 	"github.com/fly12323/RWAF/internal/ser/weakpassword"
 	"github.com/fly12323/RWAF/pkg/events"
 	"github.com/fly12323/RWAF/pkg/telemetry"
+	"log"
+	"runtime"
+	"sync"
+	"sync/atomic"
+	"time"
 
 	"github.com/segmentio/kafka-go"
 	"gorm.io/gorm"
@@ -28,27 +28,32 @@ type Condition struct {
 	Message  string `json:"message"`
 }
 type Snapshot struct {
-	SampledAt       time.Time         `json:"sampled_at"`
-	UptimeSeconds   int64             `json:"uptime_seconds"`
-	Dependencies    map[string]string `json:"dependencies"`
-	KafkaLag        *int64            `json:"kafka_lag"`
-	Consumer        map[string]any    `json:"consumer"`
-	Pipeline        map[string]int64  `json:"log_pipeline"`
-	Detector        map[string]any    `json:"weak_password"`
-	Requests        map[string]any    `json:"requests"`
-	HeapMB          uint64            `json:"heap_mb"`
-	Goroutines      int               `json:"goroutines"`
-	Conditions      []Condition       `json:"conditions"`
-	ConfigError     bool              `json:"config_error"`
-	AlertStoreError bool              `json:"alert_store_error"`
-	AlertsEnabled   bool              `json:"alerts_enabled"`
+	Health          Health                   `json:"health"`
+	IntervalSeconds int                      `json:"interval_seconds"`
+	Storage         Storage                  `json:"storage"`
+	LogQueries      telemetry.LogQuerySample `json:"log_queries"`
+	SampledAt       time.Time                `json:"sampled_at"`
+	UptimeSeconds   int64                    `json:"uptime_seconds"`
+	Dependencies    map[string]string        `json:"dependencies"`
+	KafkaLag        *int64                   `json:"kafka_lag"`
+	Consumer        map[string]any           `json:"consumer"`
+	Pipeline        map[string]int64         `json:"log_pipeline"`
+	Detector        map[string]any           `json:"weak_password"`
+	Requests        map[string]any           `json:"requests"`
+	HeapMB          uint64                   `json:"heap_mb"`
+	Goroutines      int                      `json:"goroutines"`
+	Conditions      []Condition              `json:"conditions"`
+	ConfigError     bool                     `json:"config_error"`
+	AlertStoreError bool                     `json:"alert_store_error"`
+	AlertsEnabled   bool                     `json:"alerts_enabled"`
 }
 
 var latest atomic.Pointer[Snapshot]
+var stopping atomic.Bool
 var started = time.Now()
 
 func DefaultConfig() model.MonitorConfig {
-	return model.MonitorConfig{ID: 1, Enabled: true, IntervalSeconds: 15, KafkaLagThreshold: 10000, QueuePercent: 80, ConsumerTimeoutSeconds: 30, HeapLimitMB: 512, ProxyErrorPercent: 10, ProxyMinRequests: 20, ProxyP99MS: 1000}
+	return model.MonitorConfig{ID: 1, Enabled: true, IntervalSeconds: 15, KafkaLagThreshold: 10000, QueuePercent: 80, ConsumerTimeoutSeconds: 30, HeapLimitMB: 512, ProxyErrorPercent: 10, ProxyMinRequests: 20, ProxyP99MS: 1000, DatabaseBudgetMB: 10240, DatabaseGrowthMBHour: 1024, SpoolDiskFreeMB: 256, LogQueryP95MS: 1000}
 }
 func GetConfig() (*model.MonitorConfig, error) {
 	var c model.MonitorConfig
@@ -56,6 +61,9 @@ func GetConfig() (*model.MonitorConfig, error) {
 	return &c, err
 }
 func SaveConfig(c *model.MonitorConfig) error {
+	if c.DatabaseBudgetMB < 1 || c.DatabaseBudgetMB > 1073741824 || c.DatabaseGrowthMBHour < 1 || c.DatabaseGrowthMBHour > 1073741824 || c.SpoolDiskFreeMB < 1 || c.SpoolDiskFreeMB > 1073741824 || c.LogQueryP95MS < 1 || c.LogQueryP95MS > 60000 {
+		return fmt.Errorf("数据库预算、增长和缓冲磁盘空间阈值须为正数，日志查询 P95 阈值为 1–60000 ms")
+	}
 	if c.IntervalSeconds < 5 || c.IntervalSeconds > 300 || c.KafkaLagThreshold < 1 || c.KafkaLagThreshold > 1000000000 || c.QueuePercent < 1 || c.QueuePercent > 100 || c.ConsumerTimeoutSeconds < 15 || c.ConsumerTimeoutSeconds > 300 || c.HeapLimitMB < 1 || c.HeapLimitMB > 1048576 || c.ProxyErrorPercent < 1 || c.ProxyErrorPercent > 100 || c.ProxyMinRequests < 1 || c.ProxyMinRequests > 1000000000 || c.ProxyP99MS < 1 || c.ProxyP99MS > 60000 {
 		return fmt.Errorf("监控间隔 5–300 秒、队列阈值 1–100%%、心跳超时 15–300 秒，其余阈值须为正数")
 	}
@@ -72,13 +80,21 @@ func SaveConfig(c *model.MonitorConfig) error {
 func Current() *Snapshot {
 	s := latest.Load()
 	if s == nil {
-		return &Snapshot{Dependencies: map[string]string{}, Conditions: []Condition{}}
+		s = &Snapshot{IntervalSeconds: 15, Dependencies: map[string]string{"postgres": "unknown", "redis": "unknown", "kafka": "unknown"}, Conditions: []Condition{}, Pipeline: map[string]int64{}, Detector: map[string]any{}, Requests: map[string]any{}, Storage: Storage{Tables: []TableStorage{}}}
 	}
-	return s
+	copy := *s
+	copy.Health = health(s, time.Now())
+	if stopping.Load() {
+		copy.Health.Status, copy.Health.Ready = "stopping", false
+	}
+	return &copy
 }
 
 // KafkaLag compares current topic offsets with this configured consumer group's commits.
 func KafkaLag(ctx context.Context, cfg config.KafkaConfig, transport *kafka.Transport) (int64, error) {
+	if len(cfg.Brokers) == 0 {
+		return 0, fmt.Errorf("Kafka brokers are not configured")
+	}
 	conn, err := kafka.DialContext(ctx, "tcp", cfg.Brokers[0])
 	if err != nil {
 		return 0, err
@@ -143,6 +159,20 @@ func KafkaLag(ctx context.Context, cfg config.KafkaConfig, transport *kafka.Tran
 
 func HeartbeatKey(group string) string { return "waf:consumer:heartbeat:" + group }
 
+func decodeHeartbeat(value []byte, now time.Time, timeout time.Duration) map[string]any {
+	var heartbeat map[string]any
+	if json.Unmarshal(value, &heartbeat) != nil || heartbeat == nil {
+		return nil
+	}
+	stamp, ok := heartbeat["heartbeat_at"].(float64)
+	if !ok || stamp <= 0 {
+		return nil
+	}
+	age := now.Sub(time.Unix(int64(stamp), 0))
+	heartbeat["stale"] = age < -5*time.Second || age > timeout
+	return heartbeat
+}
+
 // ConsumerHeartbeat runs independently of database writes, including retry periods.
 func ConsumerHeartbeat(ctx context.Context, group string) {
 	tick := time.NewTicker(5 * time.Second)
@@ -166,7 +196,7 @@ func ConsumerHeartbeat(ctx context.Context, group string) {
 }
 
 func evaluate(s *Snapshot, c model.MonitorConfig, previous map[string]int64) []Condition {
-	conditions := []Condition{}
+	conditions := storageConditions(s.Storage, s.LogQueries, c.DatabaseBudgetMB, c.DatabaseGrowthMBHour, c.SpoolDiskFreeMB, c.LogQueryP95MS)
 	add := func(key, severity, message string) {
 		conditions = append(conditions, Condition{key, severity, message})
 	}
@@ -180,7 +210,12 @@ func evaluate(s *Snapshot, c model.MonitorConfig, previous map[string]int64) []C
 			add("consumer_stale", "critical", "日志消费者心跳缺失或超时")
 		} else if s.Consumer["state"] == "retrying" {
 			add("consumer_retrying", "warning", "日志消费者正在重试入库或提交 offset")
+		} else if s.Consumer["state"] != "running" {
+			add("consumer_not_running", "critical", "日志消费者尚未开始工作或已经停止")
 		}
+	}
+	if s.Pipeline["available"] != 1 {
+		add("log_publisher", "critical", "日志发送器尚未初始化或已关闭")
 	}
 	if s.KafkaLag != nil && *s.KafkaLag >= c.KafkaLagThreshold {
 		add("kafka_lag", "warning", fmt.Sprintf("Kafka 消费积压 %d 条", *s.KafkaLag))
@@ -243,7 +278,7 @@ func Reconcile(ctx context.Context, conditions []Condition) error {
 					return err
 				}
 			} else {
-				if err := tx.Model(&a).Updates(map[string]any{"message": c.Message, "last_seen": now, "occurrences": gorm.Expr("occurrences + 1")}).Error; err != nil {
+				if err := tx.Model(&a).Updates(map[string]any{"severity": c.Severity, "message": c.Message, "last_seen": now, "occurrences": gorm.Expr("occurrences + 1")}).Error; err != nil {
 					return err
 				}
 			}
@@ -259,6 +294,8 @@ func Reconcile(ctx context.Context, conditions []Condition) error {
 	})
 }
 func Start(ctx context.Context) (func(), error) {
+	stopping.Store(false)
+	latest.Store(nil)
 	c := DefaultConfig()
 	if err := dao.GetDB().Clauses(clause.OnConflict{DoNothing: true}).Create(&c).Error; err != nil {
 		return nil, err
@@ -271,9 +308,11 @@ func Start(ctx context.Context) (func(), error) {
 	done := make(chan struct{})
 	transport := &kafka.Transport{DialTimeout: 3 * time.Second}
 	go func() {
+		defer MarkStopping()
 		defer close(done)
 		defer transport.CloseIdleConnections()
 		previous := map[string]int64{}
+		baseline := growthBaseline{}
 		pending := map[string]Condition{}
 		last := time.Now()
 		for {
@@ -287,7 +326,7 @@ func Start(ctx context.Context) (func(), error) {
 			if configErr == nil {
 				c = updated
 			}
-			s := &Snapshot{SampledAt: time.Now(), UptimeSeconds: int64(time.Since(started).Seconds()), Dependencies: map[string]string{}, Conditions: []Condition{}, Pipeline: events.Stats(), Detector: weakpassword.Stats(), ConfigError: configErr != nil, AlertsEnabled: c.Enabled}
+			s := &Snapshot{SampledAt: time.Now(), IntervalSeconds: c.IntervalSeconds, UptimeSeconds: int64(time.Since(started).Seconds()), Dependencies: map[string]string{}, Conditions: []Condition{}, Pipeline: events.Stats(), Detector: weakpassword.Stats(), ConfigError: configErr != nil, AlertsEnabled: c.Enabled, LogQueries: telemetry.Logs.Sample()}
 			// Independent probes each have deadlines; management reads never run probes.
 			var wg sync.WaitGroup
 			var dbState, redisState, kafkaState string
@@ -306,6 +345,7 @@ func Start(ctx context.Context) (func(), error) {
 				if err != nil {
 					dbState = "unavailable"
 				}
+				s.Storage = ReadStorage(probe, dao.GetDB(), config.GetConfig().Kafka.SpoolDir)
 			}()
 			go func() {
 				defer wg.Done()
@@ -317,9 +357,8 @@ func Start(ctx context.Context) (func(), error) {
 					return
 				}
 				value, err := dao.RDB.Get(probe, HeartbeatKey(config.GetConfig().Kafka.GroupID)).Bytes()
-				if err == nil && json.Unmarshal(value, &heartbeat) == nil {
-					stamp, _ := heartbeat["heartbeat_at"].(float64)
-					heartbeat["stale"] = time.Since(time.Unix(int64(stamp), 0)) > time.Duration(c.ConsumerTimeoutSeconds)*time.Second
+				if err == nil {
+					heartbeat = decodeHeartbeat(value, time.Now(), time.Duration(c.ConsumerTimeoutSeconds)*time.Second)
 				}
 			}()
 			go func() {
@@ -334,6 +373,7 @@ func Start(ctx context.Context) (func(), error) {
 				}
 			}()
 			wg.Wait()
+			baseline.observe(&s.Storage, s.SampledAt)
 			s.Dependencies = map[string]string{"postgres": dbState, "redis": redisState, "kafka": kafkaState}
 			s.Consumer = heartbeat
 			if kafkaState == "ok" {
@@ -346,6 +386,15 @@ func Start(ctx context.Context) (func(), error) {
 			s.Requests = telemetry.Sample(time.Since(last).Seconds())
 			last = time.Now()
 			s.Conditions = evaluate(s, c, previous)
+			// A failed measurement is not evidence that an earlier capacity alarm
+			// recovered. Keep it open until the relevant metric is available.
+			if prior := latest.Load(); prior != nil {
+				for _, condition := range prior.Conditions {
+					if s.Storage.DatabaseError && (condition.Key == "database_capacity" || condition.Key == "database_growth") || s.Storage.SpoolDiskError && condition.Key == "spool_disk_space" {
+						s.Conditions = append(s.Conditions, condition)
+					}
+				}
+			}
 			for _, key := range []string{"dropped", "errors"} {
 				previous[key] = s.Pipeline[key]
 			}

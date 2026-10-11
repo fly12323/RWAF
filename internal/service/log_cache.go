@@ -1,13 +1,15 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"github.com/fly12323/RWAF/internal/config"
+	"github.com/fly12323/RWAF/internal/dao"
 	"golang.org/x/sync/singleflight"
 	"sync"
 	"time"
-	"github.com/fly12323/RWAF/internal/config"
-	"github.com/fly12323/RWAF/internal/dao"
 )
 
 var logCache = struct {
@@ -38,6 +40,14 @@ func logRangeKey(t *time.Time) string {
 // Cache immutable JSON so callers cannot change shared results. Cap cardinality
 // and coalesce concurrent misses from dashboard users. Failed queries are never cached.
 func cachedLogQuery[T any](key string, query func() (T, error)) (T, error) {
+	return cachedLogQueryContext(context.Background(), key, query)
+}
+
+func cachedLogQueryContext[T any](ctx context.Context, key string, query func() (T, error)) (T, error) {
+	if err := ctx.Err(); err != nil {
+		var zero T
+		return zero, err
+	}
 	ttl := logCacheTTL()
 	if ttl <= 0 {
 		return query()
@@ -54,7 +64,7 @@ func cachedLogQuery[T any](key string, query func() (T, error)) (T, error) {
 	}
 	data := lookup()
 	if data == nil {
-		v, err, _ := logCache.flight.Do(key, func() (any, error) {
+		pending := logCache.flight.DoChan(key, func() (any, error) {
 			if data := lookup(); data != nil {
 				return data, nil
 			}
@@ -84,11 +94,24 @@ func cachedLogQuery[T any](key string, query func() (T, error)) (T, error) {
 			logCache.Unlock()
 			return data, nil
 		})
-		if err != nil {
+		var completed singleflight.Result
+		select {
+		case <-ctx.Done():
 			var zero T
-			return zero, err
+			return zero, ctx.Err()
+		case completed = <-pending:
 		}
-		data = v.([]byte)
+		if completed.Err != nil {
+			// A shared flight runs with its initiator's query context. If that
+			// caller left the page, an independent live waiter can retry with its
+			// own context. Never retry an unrelated database error here.
+			if ctx.Err() == nil && (errors.Is(completed.Err, context.Canceled) || errors.Is(completed.Err, context.DeadlineExceeded)) {
+				return query()
+			}
+			var zero T
+			return zero, completed.Err
+		}
+		data = completed.Val.([]byte)
 	}
 	var result T
 	err := json.Unmarshal(data, &result)

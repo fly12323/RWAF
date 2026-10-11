@@ -117,6 +117,12 @@ services:
     networks:
       default:
         aliases: [waf-server]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/health/ready"]
+      interval: 15s
+      timeout: 3s
+      start_period: 60s
+      retries: 3
 
   log-consumer:
     image: rwaf:local

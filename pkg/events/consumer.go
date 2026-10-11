@@ -2,16 +2,15 @@ package events
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/fly12323/RWAF/internal/config"
+	"github.com/fly12323/RWAF/internal/model"
 	"log"
 	"sort"
 	"strings"
 	"sync/atomic"
 	"time"
-	"github.com/fly12323/RWAF/internal/config"
-	"github.com/fly12323/RWAF/internal/model"
 
 	"github.com/segmentio/kafka-go"
 	"golang.org/x/sync/errgroup"
@@ -19,7 +18,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-var consumedCount, lastPersist atomic.Int64
+var consumedCount, lastPersist, quarantinedCount atomic.Int64
 var consumerState atomic.Pointer[string]
 var persistNanos, commitNanos, batches, fetchErrors atomic.Int64
 var activeConsumers, retryingConsumers atomic.Int64
@@ -36,7 +35,7 @@ func ConsumerStats() map[string]any {
 	if retryingConsumers.Load() > 0 {
 		state = "retrying"
 	}
-	return map[string]any{"state": state, "workers": activeConsumers.Load(), "retrying_workers": retryingConsumers.Load(), "persisted": consumedCount.Load(), "last_persist_at": lastPersist.Load(), "batches": batches.Load(), "persist_ms": persistNanos.Load() / int64(time.Millisecond), "commit_ms": commitNanos.Load() / int64(time.Millisecond), "fetch_errors": fetchErrors.Load()}
+	return map[string]any{"state": state, "workers": activeConsumers.Load(), "retrying_workers": retryingConsumers.Load(), "persisted": consumedCount.Load(), "quarantined": quarantinedCount.Load(), "last_persist_at": lastPersist.Load(), "batches": batches.Load(), "persist_ms": persistNanos.Load() / int64(time.Millisecond), "commit_ms": commitNanos.Load() / int64(time.Millisecond), "fetch_errors": fetchErrors.Load()}
 }
 
 // Independent group members distribute partitions. Never share one reader
@@ -192,47 +191,91 @@ func Consume(ctx context.Context, db *gorm.DB, cfg config.KafkaConfig) (err erro
 		MinBytes: 1, MaxBytes: 1048576, MaxWait: 200 * time.Millisecond,
 		QueueCapacity: cfg.BatchSize, CommitInterval: 0, StartOffset: kafka.FirstOffset})
 	defer r.Close()
+	return consumeMessages(ctx, cfg, r,
+		func(ctx context.Context, batch []Event) error { return PersistBatch(ctx, db, batch) },
+		func(ctx context.Context, msg kafka.Message, reason error) error {
+			return QuarantineMessage(ctx, db, cfg, msg, reason)
+		}, setState)
+}
+
+type messageReader interface {
+	FetchMessage(context.Context) (kafka.Message, error)
+	CommitMessages(context.Context, ...kafka.Message) error
+}
+
+func consumeMessages(ctx context.Context, cfg config.KafkaConfig, r messageReader,
+	persist func(context.Context, []Event) error,
+	quarantine func(context.Context, kafka.Message, error) error, setState func(string)) error {
+	retry := func(timeout time.Duration, operation func(context.Context) error) error {
+		for {
+			if err := ctx.Err(); err != nil {
+				return err
+			}
+			attempt, cancel := context.WithTimeout(ctx, timeout)
+			err := operation(attempt)
+			cancel()
+			if err == nil {
+				return nil
+			}
+			log.Printf("log consumer operation failed; offsets remain uncommitted: %v", err)
+			setState("retrying")
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(time.Second):
+			}
+		}
+	}
+	commit := func(messages []kafka.Message) error {
+		return retry(5*time.Second, func(ctx context.Context) error {
+			started := time.Now()
+			err := r.CommitMessages(ctx, messages...)
+			commitNanos.Add(int64(time.Since(started)))
+			return err
+		})
+	}
 	batch := make([]Event, 0, cfg.BatchSize)
 	messages := make([]kafka.Message, 0, cfg.BatchSize)
 	flush := func() error {
 		if len(batch) == 0 {
 			return nil
 		}
-		for {
+		isolatedBatch := 0
+		if err := retry(15*time.Second, func(writeCtx context.Context) error {
+			isolatedBatch = 0
 			started := time.Now()
-			writeCtx, cancel := context.WithTimeout(ctx, 15*time.Second)
-			err := PersistBatch(writeCtx, db, batch)
-			cancel()
+			err := persist(writeCtx, batch)
 			persistNanos.Add(int64(time.Since(started)))
-			if err == nil {
-				break
+			if permanentEventError(err) {
+				// A rolled-back batch does not identify its bad row. Retry events
+				// individually, isolating only durable data/constraint failures.
+				for i, event := range batch {
+					if err := retry(15*time.Second, func(ctx context.Context) error {
+						err := persist(ctx, []Event{event})
+						if permanentEventError(err) {
+							if err := quarantine(ctx, messages[i], err); err != nil {
+								return err
+							}
+							isolatedBatch++
+							return nil
+						}
+						return err
+					}); err != nil {
+						return err
+					}
+				}
+				return nil
 			}
-			log.Printf("log batch failed; offsets remain uncommitted: %v", err)
-			setState("retrying")
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			case <-time.After(time.Second):
-			}
+			return err
+		}); err != nil {
+			return err
 		}
-		for {
-			started := time.Now()
-			commitCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
-			err := r.CommitMessages(commitCtx, messages...)
-			cancel()
-			commitNanos.Add(int64(time.Since(started)))
-			if err == nil {
-				break
-			}
-			setState("retrying")
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			case <-time.After(time.Second):
-			}
+		if err := commit(messages); err != nil {
+			return err
 		}
 		log.Printf("persisted batch: events=%d", len(batch))
-		consumedCount.Add(int64(len(batch)))
+		consumedCount.Add(int64(len(batch) - isolatedBatch))
+		quarantinedCount.Add(int64(isolatedBatch))
 		batches.Add(1)
 		lastPersist.Store(time.Now().Unix())
 		setState("running")
@@ -267,15 +310,24 @@ func Consume(ctx context.Context, db *gorm.DB, cfg config.KafkaConfig) (err erro
 			deadline = time.Now().Add(time.Duration(cfg.FlushIntervalMs) * time.Millisecond)
 			continue
 		}
-		var e Event
-		if len(msg.Value) > cfg.MaxEventBytes {
-			return fmt.Errorf("oversized event at partition=%d offset=%d", msg.Partition, msg.Offset)
-		}
-		if err := json.Unmarshal(msg.Value, &e); err != nil {
-			return fmt.Errorf("invalid event partition=%d offset=%d: %w", msg.Partition, msg.Offset, err)
-		}
-		if err := e.Validate(); err != nil {
-			return fmt.Errorf("invalid event partition=%d offset=%d: %w", msg.Partition, msg.Offset, err)
+		e, decodeErr := DecodeEvent(msg.Value, cfg.MaxEventBytes)
+		if decodeErr != nil {
+			// Commit the valid prefix first; committing this later offset must
+			// never skip previously fetched but unpersisted events.
+			if err := flush(); err != nil {
+				return err
+			}
+			if err := retry(15*time.Second, func(ctx context.Context) error { return quarantine(ctx, msg, decodeErr) }); err != nil {
+				return err
+			}
+			if err := commit([]kafka.Message{msg}); err != nil {
+				return err
+			}
+			quarantinedCount.Add(1)
+			log.Printf("quarantined log event partition=%d offset=%d", msg.Partition, msg.Offset)
+			setState("running")
+			deadline = time.Now().Add(time.Duration(cfg.FlushIntervalMs) * time.Millisecond)
+			continue
 		}
 		setState("running")
 		batch = append(batch, e)

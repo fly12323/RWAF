@@ -1,7 +1,8 @@
 import { http } from './http'
 import type {
+	HealthStatus,
   WeakPasswordConfig, WeakPasswordEvent, MonitorConfig, RuntimeSnapshot, SecurityAlert,
-  PageData,
+  PageData, QuarantinedEvent,
   RequestLog,
   Rule,
   Site,
@@ -35,6 +36,9 @@ const put = <T>(url: string, data?: unknown) => http.put<unknown, T>(url, data)
 const del = <T>(url: string) => http.delete<unknown, T>(url)
 
 export const api = {
+  quarantinedEvents: (page = 1, status = 'pending') => get<PageData<QuarantinedEvent>>(`/api/v1/log-quarantine${q({ page, status })}`),
+  quarantinedEvent: (id: number) => get<QuarantinedEvent>(`/api/v1/log-quarantine/${id}`),
+  replayQuarantinedEvent: (id: number, event: unknown, reason: string) => post<QuarantinedEvent>(`/api/v1/log-quarantine/${id}/replay`, { event, reason }),
   weakPasswordConfig: () => get<WeakPasswordConfig>('/api/v1/weak-password/config'),
   previewWeakPassword: (value: string) => post<Record<string, string>>('/api/v1/weak-password/preview', { value }),
   updateWeakPasswordConfig: (v: WeakPasswordConfig) => put<WeakPasswordConfig>('/api/v1/weak-password/config', v),
@@ -47,7 +51,12 @@ export const api = {
   acknowledgeAlert: (id: number) => post<null>(`/api/v1/monitor/alerts/${id}/acknowledge`),
   resolveWeakAlert: (id: number) => post<null>(`/api/v1/monitor/alerts/${id}/resolve`),
   // Health
-  health: () => get<Record<string, unknown>>('/health'),
+  health: async (): Promise<HealthStatus> => {
+    const result = await fetch('/health', { cache: 'no-store', signal: AbortSignal.timeout(3000) })
+    const state = await result.json() as HealthStatus
+    if (!['starting', 'healthy', 'degraded', 'stale', 'stopping'].includes(state.status)) throw new Error('健康状态响应无效')
+    return state
+  },
 
   // Auth
   login: (username: string, password: string) =>

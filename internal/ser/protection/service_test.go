@@ -17,7 +17,7 @@ func TestParanoiaValidationAndLegacyDefault(t *testing.T) {
 			t.Fatal("old client did not retain PL1")
 		}
 	}
-	for _, id := range []string{"1000000001", "01000000001"} {
+	for _, id := range []string{"1000000001", "01000000001", "1000000002", "01000000002"} {
 		cfg := model.DefaultProtectionConfig("block", 15)
 		cfg.DisabledRuleIDs = []string{id}
 		if Validate(&cfg) == nil {

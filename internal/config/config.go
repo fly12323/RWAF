@@ -156,7 +156,7 @@ func LoadConfig(configPath string) error {
 	v.SetDefault("kafka.spool_dir", "./data/event-spool")
 	v.SetDefault("kafka.spool_max_bytes", 1073741824)
 	v.SetDefault("kafka.spool_sync_ms", 5)
-	v.SetDefault("log.retention_days", 30)
+	v.SetDefault("log.retention_days", 0)
 	v.SetDefault("log.cleanup_interval_minutes", 60)
 	v.SetDefault("log.cleanup_batch_size", 1000)
 	v.SetDefault("log.statistics_cache_seconds", 5)

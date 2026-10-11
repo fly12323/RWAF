@@ -5,6 +5,7 @@ import (
 	"github.com/fly12323/RWAF/internal/handler"
 	"github.com/fly12323/RWAF/internal/middleware"
 	"github.com/fly12323/RWAF/internal/model"
+	"github.com/fly12323/RWAF/internal/ser/monitor"
 	"github.com/fly12323/RWAF/internal/ser/protection"
 	"github.com/fly12323/RWAF/internal/service"
 	"github.com/fly12323/RWAF/pkg/events"
@@ -34,12 +35,18 @@ func SetupAPIRouter(r *gin.Engine, proxyManager *proxy.ProxyManager, jwtInstance
 	operationLogHandler := handler.NewOperationLogHandler()
 
 	// 健康检查
-	r.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"status":  "ok",
-			"message": "WAF 服务运行正常",
-		})
-	})
+	r.GET("/health/live", func(c *gin.Context) { c.JSON(200, gin.H{"status": "alive"}) })
+	health := func(c *gin.Context) {
+		h := monitor.PublicHealth()
+		code := 200
+		if !h.Ready {
+			code = 503
+		}
+		c.Header("Cache-Control", "no-store")
+		c.JSON(code, h)
+	}
+	r.GET("/health", health)
+	r.GET("/health/ready", health)
 
 	// API v1 路由组
 	api := r.Group("/api/v1")
@@ -60,6 +67,11 @@ func SetupAPIRouter(r *gin.Engine, proxyManager *proxy.ProxyManager, jwtInstance
 			readDetection.GET("/weak-password/events/:id", handler.GetWeakPasswordEventDetail)
 			readDetection.GET("/monitor/status", handler.GetMonitorStatus)
 			readDetection.GET("/monitor/alerts", handler.GetAlerts)
+			readDetection.GET("/log-quarantine", handler.GetQuarantinedEvents)
+			readDetection.GET("/log-quarantine/:id", handler.GetQuarantinedEvent)
+			replayLogs := authorized.Group("/log-quarantine")
+			replayLogs.Use(middleware.RequireAdmin())
+			replayLogs.POST("/:id/replay", handler.ReplayQuarantinedEvent)
 			writeDetection := authorized.Group("")
 			writeDetection.Use(middleware.RequireOperator())
 			writeDetection.GET("/weak-password/config", handler.GetWeakPasswordConfig)
@@ -146,6 +158,7 @@ func SetupAPIRouter(r *gin.Engine, proxyManager *proxy.ProxyManager, jwtInstance
 			// 日志管理（所有角色可查看，删除仅操作员）
 			logs := authorized.Group("/logs")
 			logs.Use(middleware.RequireAuditor())
+			logs.Use(middleware.LogQueryMetrics())
 			{
 				logs.GET("", logHandler.GetRequestLogList)
 				logs.GET("/statistics", logHandler.GetStatistics)

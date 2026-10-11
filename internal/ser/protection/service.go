@@ -93,8 +93,8 @@ func Validate(c *model.ProtectionConfig) error {
 		if err != nil || n <= 0 {
 			return fmt.Errorf("无效规则 ID: %s", id)
 		}
-		if n == 1000000001 {
-			return fmt.Errorf("不能禁用系统策略初始化规则")
+		if n == 1000000001 || n == 1000000002 {
+			return fmt.Errorf("不能禁用系统策略初始化或请求体处理器规则")
 		}
 	}
 	if c.EnabledRuleCategories == nil {

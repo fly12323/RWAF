@@ -219,5 +219,6 @@ func (s *OperationLogService) GetAllActions() []map[string]string {
 		{"value": "resolve_weak_password_alert", "label": "处理弱口令告警", "category": "系统"},
 		// WAF
 		{"value": model.ActionReloadWAF, "label": "重载WAF", "category": "系统"},
+		{"value": model.ActionReplayQuarantinedEvent, "label": "重放隔离日志", "category": "日志"},
 	}
 }

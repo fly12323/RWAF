@@ -21,6 +21,8 @@ func TestConditionsAndRecovery(t *testing.T) {
 	}
 	s.Dependencies["postgres"] = "ok"
 	s.Consumer["stale"] = false
+	s.Consumer["state"] = "running"
+	s.Pipeline["available"] = 1
 	lag = 0
 	s.Pipeline["queued"] = 0
 	s.HeapMB = 20
@@ -32,6 +34,9 @@ func TestConditionsAndRecovery(t *testing.T) {
 }
 func TestSnapshotInitialRead(t *testing.T) {
 	s := Current()
+	if s.Requests == nil || s.Detector == nil || s.Pipeline == nil {
+		t.Fatal("initial snapshot contains null metric objects")
+	}
 	if s.SampledAt.After(time.Now()) {
 		t.Fatal("invalid sample timestamp")
 	}

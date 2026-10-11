@@ -47,6 +47,10 @@ type MonitorConfig struct {
 	ProxyErrorPercent      int       `json:"proxy_error_percent"`
 	ProxyMinRequests       int       `json:"proxy_min_requests"`
 	ProxyP99MS             int       `json:"proxy_p99_ms"`
+	DatabaseBudgetMB       int       `json:"database_budget_mb" gorm:"not null;default:10240"`
+	DatabaseGrowthMBHour   int       `json:"database_growth_mb_hour" gorm:"not null;default:1024"`
+	SpoolDiskFreeMB        int       `json:"spool_disk_free_mb" gorm:"not null;default:256"`
+	LogQueryP95MS          int       `json:"log_query_p95_ms" gorm:"not null;default:1000"`
 	UpdatedAt              time.Time `json:"updated_at"`
 }
 

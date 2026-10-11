@@ -41,6 +41,7 @@ func SuccessWithMsg(c *gin.Context, message string, data interface{}) {
 
 // Fail 失败响应
 func Fail(c *gin.Context, code int, message string) {
+	c.Set("response_code", code)
 	c.JSON(http.StatusOK, Response{
 		Code:    code,
 		Message: message,
@@ -50,6 +51,7 @@ func Fail(c *gin.Context, code int, message string) {
 
 // FailWithData 失败响应（带数据）
 func FailWithData(c *gin.Context, code int, message string, data interface{}) {
+	c.Set("response_code", code)
 	c.JSON(http.StatusOK, Response{
 		Code:    code,
 		Message: message,
@@ -59,6 +61,7 @@ func FailWithData(c *gin.Context, code int, message string, data interface{}) {
 
 // Error 错误响应（HTTP状态码）
 func Error(c *gin.Context, httpCode int, code int, message string) {
+	c.Set("response_code", code)
 	c.JSON(httpCode, Response{
 		Code:    code,
 		Message: message,

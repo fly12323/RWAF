@@ -3,14 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"log"
-	"net"
-	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
 	"github.com/fly12323/RWAF/internal/config"
 	"github.com/fly12323/RWAF/internal/dao"
 	"github.com/fly12323/RWAF/internal/router"
@@ -21,6 +13,14 @@ import (
 	"github.com/fly12323/RWAF/pkg/events"
 	"github.com/fly12323/RWAF/pkg/jwt"
 	"github.com/fly12323/RWAF/pkg/proxy"
+	"github.com/gin-gonic/gin"
+	"log"
+	"net"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
 func main() {
@@ -110,7 +110,6 @@ func run() error {
 	apiRouter.Use(gin.Recovery())
 	_ = apiRouter.SetTrustedProxies(nil)
 	router.SetupAPIRouter(apiRouter, manager, jwtInstance, tokenService, userService)
-	apiRouter.GET("/health/ready", func(c *gin.Context) { c.JSON(200, gin.H{"status": "ready", "events": publisher.Stats()}) })
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Server.Port))
 	if err != nil {
 		return err
@@ -128,6 +127,7 @@ func run() error {
 			return err
 		}
 	}
+	monitor.MarkStopping()
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := apiServer.Shutdown(shutdownCtx); err != nil {

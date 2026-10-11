@@ -156,6 +156,15 @@ func (t *Transaction) ProcessRequestBody() *types.Interruption {
 
 // InspectRequestBody preserves both body-write interruptions and parser errors.
 func (t *Transaction) InspectRequestBody(data []byte) (*types.Interruption, error) {
+	// The pinned JSON processor uses a permissive parser. Reject malformed or
+	// excessively nested JSON before it can silently inspect a partial object.
+	if v, ok := t.tx.(interface {
+		Variables() plugintypes.TransactionVariables
+	}); ok && v.Variables().RequestBodyProcessor().Get() == "JSON" && len(data) > 0 {
+		if err := validateJSONBody(data); err != nil {
+			return nil, err
+		}
+	}
 	interruption, _, err := t.tx.WriteRequestBody(data)
 	if interruption != nil || err != nil {
 		return interruption, err
@@ -206,7 +215,7 @@ func (t *Transaction) GetMatchedRuleDetails() []MatchedRuleDetail {
 	var details []MatchedRuleDetail
 	for _, rule := range t.tx.MatchedRules() {
 		// The policy initializer is infrastructure, not a detection.
-		if rule.Rule().ID() == 1000000001 {
+		if rule.Rule().ID() == 1000000001 || rule.Rule().ID() == 1000000002 {
 			continue
 		}
 		detail := MatchedRuleDetail{
@@ -447,6 +456,8 @@ func buildEngine(cfg *WAFConfig, mode string, disabled, categories []string, thr
 		return nil, err
 	}
 	wafConfig := coraza.NewWAFConfig().WithDirectives(fmt.Sprintf("SecRequestBodyLimit %d\nSecRequestBodyAccess On\nSecResponseBodyAccess Off", cfg.RequestBodyLimit))
+	// System integration precedes CRS and is independent of selected categories.
+	wafConfig = wafConfig.WithDirectives(`SecRule REQUEST_HEADERS:Content-Type "@rx (?i)^application/(?:[a-z0-9!#$%&'*.^_` + "`" + `|~+-]+\+)?json\s*(?:;|$)" "id:1000000002,phase:1,t:none,pass,nolog,ctl:requestBodyProcessor=JSON"`)
 	directives, err := loadRules(cfg)
 	if err != nil {
 		return nil, err
@@ -495,8 +506,8 @@ func buildEngine(cfg *WAFConfig, mode string, disabled, categories []string, thr
 		if err != nil || n <= 0 {
 			return nil, fmt.Errorf("无效规则 ID: %s", id)
 		}
-		if n == 1000000001 {
-			return nil, fmt.Errorf("不能禁用系统策略初始化规则")
+		if n == 1000000001 || n == 1000000002 {
+			return nil, fmt.Errorf("不能禁用系统策略初始化或请求体处理器规则")
 		}
 		wafConfig = wafConfig.WithDirectives("SecRuleRemoveById " + id)
 	}

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"errors"
 	"strconv"
 	"time"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/fly12323/RWAF/pkg/response"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // LogHandler 日志处理器
@@ -64,6 +66,15 @@ func parseTimeRange(c *gin.Context) (*time.Time, *time.Time) {
 func (h *LogHandler) GetRequestLogList(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
+	if page < 1 {
+		page = 1
+	}
+	if page > 100000 {
+		page = 100000
+	}
+	if pageSize < 1 || pageSize > 100 {
+		pageSize = 10
+	}
 	action := c.Query("action")
 	attackType := c.Query("attack_type")
 	siteIDStr := c.Query("site_id")
@@ -79,7 +90,7 @@ func (h *LogHandler) GetRequestLogList(c *gin.Context) {
 		}
 	}
 
-	logs, total, err := h.logService.GetRequestLogList(page, pageSize, action, attackType, siteID, clientIP, startTime, endTime)
+	logs, total, err := h.logService.WithContext(c.Request.Context()).GetRequestLogList(page, pageSize, action, attackType, siteID, clientIP, startTime, endTime)
 	if err != nil {
 		response.Fail(c, 500, "获取日志列表失败: "+err.Error())
 		return
@@ -97,9 +108,13 @@ func (h *LogHandler) GetRequestLogDetail(c *gin.Context) {
 		return
 	}
 
-	detail, err := h.logService.GetRequestLogDetail(uint(id))
+	detail, err := h.logService.WithContext(c.Request.Context()).GetRequestLogDetail(uint(id))
 	if err != nil {
-		response.Fail(c, 404, "日志不存在")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			response.Fail(c, 404, "日志不存在")
+		} else {
+			response.Fail(c, 503, "日志详情暂不可用")
+		}
 		return
 	}
 
@@ -111,7 +126,7 @@ func (h *LogHandler) GetRequestLogDetail(c *gin.Context) {
 func (h *LogHandler) GetStatistics(c *gin.Context) {
 	startTime, endTime := parseTimeRange(c)
 
-	stats, err := h.logService.GetStatistics(startTime, endTime)
+	stats, err := h.logService.WithContext(c.Request.Context()).GetStatistics(startTime, endTime)
 	if err != nil {
 		response.Fail(c, 500, "获取统计失败: "+err.Error())
 		return
@@ -128,7 +143,7 @@ func (h *LogHandler) GetDailyStatistics(c *gin.Context) {
 		days = 30
 	}
 
-	stats, err := h.logService.GetDailyStatistics(days)
+	stats, err := h.logService.WithContext(c.Request.Context()).GetDailyStatistics(days)
 	if err != nil {
 		response.Fail(c, 500, "获取每日统计失败: "+err.Error())
 		return
@@ -148,7 +163,7 @@ func (h *LogHandler) GetTrend(c *gin.Context) {
 		if hours > 168 {
 			hours = 168
 		}
-		trend, err := h.logService.GetAttackTrend(hours)
+		trend, err := h.logService.WithContext(c.Request.Context()).GetAttackTrend(hours)
 		if err != nil {
 			response.Fail(c, 500, "获取趋势失败: "+err.Error())
 			return
@@ -157,7 +172,7 @@ func (h *LogHandler) GetTrend(c *gin.Context) {
 		return
 	}
 
-	trend, err := h.logService.GetTrend(startTime, endTime)
+	trend, err := h.logService.WithContext(c.Request.Context()).GetTrend(startTime, endTime)
 	if err != nil {
 		response.Fail(c, 500, "获取趋势失败: "+err.Error())
 		return
@@ -174,7 +189,7 @@ func (h *LogHandler) GetAttackTrend(c *gin.Context) {
 		hours = 168
 	}
 
-	trend, err := h.logService.GetAttackTrend(hours)
+	trend, err := h.logService.WithContext(c.Request.Context()).GetAttackTrend(hours)
 	if err != nil {
 		response.Fail(c, 500, "获取攻击趋势失败: "+err.Error())
 		return
@@ -188,7 +203,7 @@ func (h *LogHandler) GetAttackTrend(c *gin.Context) {
 func (h *LogHandler) GetAttackTypeStatistics(c *gin.Context) {
 	startTime, endTime := parseTimeRange(c)
 
-	stats, err := h.logService.GetAttackTypeStatistics(startTime, endTime)
+	stats, err := h.logService.WithContext(c.Request.Context()).GetAttackTypeStatistics(startTime, endTime)
 	if err != nil {
 		response.Fail(c, 500, "获取统计失败: "+err.Error())
 		return
@@ -202,7 +217,7 @@ func (h *LogHandler) GetAttackTypeStatistics(c *gin.Context) {
 func (h *LogHandler) GetAttackIPs(c *gin.Context) {
 	startTime, endTime := parseTimeRange(c)
 
-	ips, err := h.logService.GetAttackIPs(startTime, endTime)
+	ips, err := h.logService.WithContext(c.Request.Context()).GetAttackIPs(startTime, endTime)
 	if err != nil {
 		response.Fail(c, 500, "获取攻击IP失败: "+err.Error())
 		return
@@ -221,7 +236,7 @@ func (h *LogHandler) GetAttackGeo(c *gin.Context) {
 		limit = 500
 	}
 
-	ips, err := h.logService.GetAttackIPsWithLimit(startTime, endTime, limit)
+	ips, err := h.logService.WithContext(c.Request.Context()).GetAttackIPsWithLimit(startTime, endTime, limit)
 	if err != nil {
 		response.Fail(c, 500, "获取攻击IP失败: "+err.Error())
 		return
@@ -266,7 +281,7 @@ func (h *LogHandler) DeleteOldLogs(c *gin.Context) {
 		days = 7
 	}
 
-	deletedCount, err := h.logService.DeleteOldLogs(days)
+	deletedCount, err := h.logService.WithContext(c.Request.Context()).DeleteOldLogs(days)
 	if err != nil {
 		response.Fail(c, 500, "删除日志失败: "+err.Error())
 		return

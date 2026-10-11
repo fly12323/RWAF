@@ -77,7 +77,8 @@ const (
 	ActionUpdateCCProtection = "update_cc_protection"
 
 	// WAF管理
-	ActionReloadWAF = "reload_waf"
+	ActionReloadWAF              = "reload_waf"
+	ActionReplayQuarantinedEvent = "replay_quarantined_event"
 
 	// 异常检测
 	ActionTrainAnomaly = "train_anomaly"
@@ -85,16 +86,17 @@ const (
 
 // 资源类型常量
 const (
-	ResourceAuth         = "auth"
-	ResourceUser         = "user"
-	ResourceSite         = "site"
-	ResourceRule         = "rule"
-	ResourceWhitelist    = "whitelist"
-	ResourceIPBlacklist  = "ip_blacklist"
-	ResourceIPWhitelist  = "ip_whitelist"
-	ResourceCCProtection = "cc_protection"
-	ResourceWAF          = "waf"
-	ResourceAnomaly      = "anomaly"
+	ResourceAuth          = "auth"
+	ResourceUser          = "user"
+	ResourceSite          = "site"
+	ResourceRule          = "rule"
+	ResourceWhitelist     = "whitelist"
+	ResourceIPBlacklist   = "ip_blacklist"
+	ResourceIPWhitelist   = "ip_whitelist"
+	ResourceCCProtection  = "cc_protection"
+	ResourceWAF           = "waf"
+	ResourceLogQuarantine = "log_quarantine"
+	ResourceAnomaly       = "anomaly"
 )
 
 // 操作结果常量
